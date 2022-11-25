@@ -1,0 +1,68 @@
+ccopts = -onailmrh -s -fpi87 -d1 -fp3 -6r -e5 -zp=1 -w9 -we -wcd=201 -wcd=202
+#ccopts = -od -s -fpi87 -d1 -fp3 -6r -e5 -zp=1 -w9 -we -wcd=201 -wcd=202
+asmopts = -UT310 -p -ml -m9 -zi -dDEBUG
+
+makeobjs = voima.obj tinystrt.obj musa.obj gonvert.obj
+makeobjs+= rxm.obj gus.obj sb.obj int.obj
+objs+= $(makeobjs)
+
+rmk = *.h makefile
+
+
+
+#.silent
+.extensions:
+.extensions: .lst .obj .c .asm .cpp .xm .tga .raw
+
+all : voima.exe .symbolic
+
+.cpp.obj : .autodepend
+  @echo $^*.cpp
+  @wpp386 -zq $(ccopts) $^*.cpp
+
+.c.obj : .autodepend
+  @echo $^*.c
+  @wcc386 $(ccopts) $^*.c
+
+.asm.obj :
+  @echo $^*.asm
+  @tasm $(asmopts) $^*.asm
+
+musa.c : ..\plaa.bin
+  @echo $^*.bin
+  @bin2c ..\plaa.bin musa.c musiko
+
+
+#.xm.obj :
+#  xm2mxm.exe $^*.xm temp786x.666 -p5
+#  copy /b shit+temp786x.666 temp786x.667
+#  binobj32 temp786x.667 $^*.obj mjuzic
+#  del temp786x.666 temp786x.667
+
+.obj.lst :
+  wdis -fi -l -s $^*
+
+
+voima.exe : $(objs) $(rmk)
+  %write temp786x.666 name $^*
+  %write temp786x.666 library lib2tfin
+  %write temp786x.666 file { $(objs) }
+  %write temp786x.666 option caseexact
+  %write temp786x.666 option nodefaultlibs
+  %write temp786x.666 system pmodew
+  wlink @temp786x.666
+  del temp786x.666
+  #pmwlite $^*.exe
+  #pmwsetup /V32 /L8192 $^*.exe
+  #@32lite $^*.exe
+  pmwbind /r $^*.exe /sd:\wc\binw\tinystub.exe
+
+
+clean : .symbolic
+  del $(makeobjs)
+  del *.exe *.bak *.err *.zip *.lst
+
+run : voima.exe .symbolic
+  @echo run
+  @voima.exe
+

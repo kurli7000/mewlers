@@ -1,0 +1,14 @@
+impotent.exe : impotent.obj vid.obj
+  wlink @impotent.wlk
+  pmwlite impotent.exe
+
+impotent.obj : impotent.c
+  wcc386.exe -oneatxh -zp1 -s -fpi87 -fp5 -5r -e5 -w3 impotent
+
+vid.obj : vid.c
+  wcc386.exe -oneatxh -zp1 -s -fpi87 -fp5 -5r -e5 -w3 vid
+
+run : impotent.exe
+  impotent.exe
+
+

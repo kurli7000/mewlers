@@ -1,0 +1,5 @@
+opu2.c(787): Warning! W102: Type mismatch
+opu2.c(788): Warning! W102: Type mismatch
+opu2.c(782): Warning! W202: Symbol 'w' has been defined, but not referenced
+opu2.c(783): Warning! W202: Symbol 'f' has been defined, but not referenced
+opu2.c(787): Warning! W301: No prototype found for 'malloc'

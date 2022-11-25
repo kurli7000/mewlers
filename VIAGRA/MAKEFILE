@@ -1,0 +1,69 @@
+optiopts = -onatilmrh -oe=100 -s -fpi87 -d1 -fp5 -5r -e5 -zp=1 -w=9 -we -wcd=201 -wcd=202
+ccopts = -onasilmrh -s -fpi87 -d1 -fp5 -5r -e5 -zp=1 -w=9 -we -wcd=201 -wcd=202
+#ccopts = -od -s -fpi87 -fp5 -5r -e5 -zp=1 -w=9
+asmopts = -UT310 -p -ml -m9 -zi
+
+makeobjs = test3d.obj vid.obj mxmplay2.obj tinystrt.obj tinyheap.obj
+makeobjs+= enkine2.obj functs.obj vectorz.obj tri.obj
+objs = musa.obj sivupeet.obj smalsper.obj smalufo.obj
+objs+= $(makeobjs)
+
+rmk = *.h makefile
+
+
+
+
+#.silent
+#.extensions: .s3m .tga .raw
+
+.extensions:
+.extensions: .lst .obj .c .asm .cpp .xm .tga .raw
+
+
+
+all : test3d.exe .symbolic
+
+#$(makeobjs) :: $(rmk)
+#  del $^*.obj
+
+.raw.obj :
+  binobj32 $^*.raw $^*.obj $^*
+
+.cpp.obj :
+  wpp386 $^*.cpp $(ccopts)
+
+tri.obj : tri.c
+  wcc386 $^*.c $(optiopts)
+
+.c.obj :
+  wcc386 $^*.c $(ccopts)
+
+.asm.obj :
+  tasm $^*.asm $(asmopts)
+
+.obj.lst :
+  wdis -fi -l -s $^*
+
+
+
+
+test3d.exe : $(objs) $(rmk)
+  %write temp786x.666 name $^*
+  %write temp786x.666 file { $(objs) }
+  %write temp786x.666 option caseexact
+  %write temp786x.666 option nodefaultlibs
+  %write temp786x.666 system pmodew
+  wlink @temp786x.666
+  del temp786x.666
+  pmwlite $^*.exe
+  pmwsetup /V32 $^*.exe
+
+
+clean : .symbolic
+  del $(makeobjs)
+  del *.exe *.bak *.err *.zip
+run : test3d.exe .symbolic
+  test3d.exe
+
+
+

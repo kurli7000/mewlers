@@ -1,0 +1,1932 @@
+typedef unsigned short ushort;
+
+#include "vid.h"
+#include "mxmplay2.h"
+#include "tinymath.h"
+#include "tinyheap.h"
+#include "tinyfile.h"
+#include "enkine2.h"
+
+ushort *videomem;
+extern char mjuzic[100000];
+Xmpgds *mdata=(Xmpgds*)mjuzic;
+#define ulkona 1234567890
+extern char sp[16000];
+extern char kohokuva[];
+
+#define valom 256
+
+char sp1[20000];
+char sp2[20000];
+char sp3[20000];
+char sp4[20000];
+char sp5[20000];
+char sp6[20000];
+char logo1[32000];
+char logo2[32000];
+
+char skuva1[64000];
+char skuva2[64000];
+char skuva3[64000];
+char skuva4[64000];
+char skuva5[64000];
+char skuva6[64000];
+
+int rtbl2[16384];
+#define rtbl (rtbl2+8192)
+
+int paletti1[16384];
+char hue[64000];
+
+char dbuf[64000], dbuf2[64000];
+char mappi2[65536], mappi3[65536];
+ushort zbuf[64000];
+ushort ppal[256], spal[256];
+
+extern char smalsper[];
+char sperikal[65536], sperikal2[65536];
+
+int valotbl[65536];
+ushort radiaali[65536];
+ushort tunneli[64000];
+
+char ufomap[65536];
+ushort ufojahf[65536];
+char uforeika[65536];
+char envi3[65536];
+
+int pienix[81*51], pieniz[81*51], varjot[81*51];
+char isox[64000], isoz[64000], valo[64000];
+short hfield2[65536];
+
+int valot_x[valom], valot_y[valom], valot_z[valom], univ_a[valom];
+char valospr[64*64];
+
+char laasertaul[65536];
+
+typedef struct {
+  int u, v, c, t;
+} gridfx;
+gridfx pallero[41*26];
+
+int tbla1[1024], tbla2[256];
+int tblb1[1024], tblb2[256];
+
+
+//////////////////////////////////////////////////// PASKAA
+
+void exit();
+int rand();
+
+void move32(void *zourke, void *dezt, int kount);
+#pragma aux move32= "cld" "rep movsd" parm[esi][edi][ecx];
+void fill32(void *dezt, int kount, int num);
+#pragma aux fill32= "cld" "rep stosd" parm[edi][ecx][eax];
+float fabs(float a);
+#pragma aux fabs= "fabs" parm [8087] value [8087];
+static long qftoltemp;
+long qftol(float);
+#pragma aux qftol = "fistp dword ptr[qftoltemp]" \
+                    "mov eax, dword ptr[qftoltemp]" parm [8087] value [eax];
+void qftolp(int*, float);
+#pragma aux qftolp = "fistp dword ptr[eax]" parm [eax][8087];
+void dosputs(char *stringi);
+#pragma aux dosputs=\
+  "mov ah,9"        \
+  "int 21h"         \
+  parm [edx] modify [eax ebx ecx edx esi edi];
+
+float musatimer() {
+  return ((mdata->curord*64+mdata->currow)+(mdata->curtick
+    +(xmpGetTimer()-mdata->maxtimerrate)/(float)(mdata->stimerlen))/mdata->curtempo);
+}
+
+void ulos(int port, char data);
+#pragma aux ulos= "out dx, al" parm[edx][al];
+char sisaan(int port);
+#pragma aux sisaan= "in al,dx" parm[edx][al] value[al];
+
+void __interrupt __far (*get_intr(int no))();
+#pragma aux get_intr="mov eax,0x204""int 0x31" parm [ebx] value [cx edx] modify [eax ebx ecx edx esi edi];
+void set_intr(int no, void __interrupt __far (*f)());
+#pragma aux set_intr="mov eax,0x205""int 0x31" parm [ebx][cx edx] modify [eax ebx ecx edx esi edi];
+
+static volatile char keys[144], kcnt[144];
+void __interrupt __far (*oldk)();
+void __interrupt __far __loadds newk() {
+  int a;
+
+  a=sisaan(0x60);
+  if (a<0x80) { keys[a]=1; kcnt[a]++; } else keys[a-0x80]=0;
+
+  a=keys[128]; keys[128]=keys[29]&&keys[56]&&keys[83]; kcnt[128]+=keys[128]&&!a;
+  a=keys[129]; keys[129]=keys[29]&&keys[69]; kcnt[129]+=keys[129]&&!a;
+  ulos(0x20, 0x20);
+
+  if ((kcnt[128]&1)&&!keys[128]) {
+    set_intr(0x9, oldk);
+    _asm {
+      mov eax,3h
+      int 10h
+    };
+    dosputs("ahahsidurhasorehawoher\r\n$");
+    exit(1);
+  }
+}
+
+
+//////////////////////////////////////////////////// PRECALCIT
+
+
+void unpak1(char *sourke, char *dest, char mask, int count) {
+  int x;
+
+  for (x=0; x<count; x++) {
+     dest[x]=(sourke[x]>>mask)&1;
+  }
+}
+
+
+
+void teepaljetti(int *p, float r1, float g1, float b1, float r2, float g2, float b2) {
+  int x, y, r, g, b, rr, gg, bb;
+  for (y=0; y<64; y++) {
+    rr=r1+y*r2;
+    gg=g1+y*g2;
+    bb=b1+y*b2;
+    for (x=0; x<256; x++) {
+      r=rr*x>>9; g=gg*x>>9; b=bb*x>>9;
+      p[y*256+x]=(rtbl[r]>>3<<11)+(rtbl[g]>>2<<5)+(rtbl[b]>>3);
+    }
+  }
+}
+
+
+void precalcipaskaa() {
+  int x,y,joo;
+
+  for (y=0; y<200; y++) for (x=0; x<320; x++) {
+    joo=(x-160)*(x-160)+(y-100)*(y-100);
+    hue[y*320+x]=(fsin(joo/6400.0)+fsin(x/24.0)+fcos(joo/4800.0)+fsin(fsin(x/16.0)+y/32.0)+4)*8;
+  }
+  teepaljetti(paletti1, 600, 1000, 500, 600/64.0, -300/64.0, 0);
+}
+
+
+void prekalknewshit() {
+  int x, y, u, v, i;
+
+  for (y=0; y<64; y++) for (x=0; x<64; x++) {  // valosprite
+    u=x-31.99;
+    v=y-31.99;
+//    i=8192/(u*u+v*v+16)-8;
+    i=16384/(u*u+v*v+64)-16;
+    if (i<0) i=0; if (i>255) i=255;
+    valospr[y*64+x]=i;
+  }
+
+  for (x=0; x<valom; x++) {
+    valot_x[x]=rand()-rand();
+    valot_y[x]=rand()-rand();
+    valot_z[x]=rand()-rand();
+    univ_a[x]=rand();
+  }
+
+  for (x=0; x<65536; x++) {
+    i=255.0/((7000-x)*(7000-x)/16384.0);
+    //if (i<0) i=0;
+    if (i>255) i=255;
+    laasertaul[x]=i;
+  }
+
+}
+
+
+void kasittelelogo(char *desti) {
+  int i, j, k;
+  static int temp[32000], temp2[32000];
+
+  fill32(temp, 32000, 0); fill32(temp2, 32000, 0);
+  for (i=0; i<16000; i++) temp[i+8000]=desti[i];
+  for (i=0; i<32000; i++) desti[i]=temp[i];
+  for (i=0; i<32000; i++) temp[i]=desti[i]*262144;
+
+  for (i=0; i<20; i++) {
+    for (j=1*320; j<99*320; j++) {
+      temp2[j]=(temp[j]+temp[j-320]+temp[j-1]+temp[j+1]+temp[j+320])/5;
+    }
+    for (j=1*320; j<99*320; j++) {
+      temp[j]=(temp2[j]+temp2[j-320]+temp2[j-1]+temp2[j+1]+temp2[j+320])/5;
+    }
+  }
+
+  fill32(temp2, 32000, 0);
+  for (i=0; i<32000-321; i++) {
+    k=(desti[i]+
+       desti[i+1]+
+       desti[i+320]+
+       desti[i+321])*16+
+       temp[i]*0.0009;
+
+    //k=temp[i]*0.0009;
+    //k=(desti[i]*64)+temp[i]*0.0009;
+    temp2[i]=rtbl[k];
+  }
+  for (i=0; i<32000; i++) desti[i]=temp2[i];
+
+
+/*
+  for (i=0; i<32000; i++) {
+    k=(desti[i]*70)+(temp[i]*0.0009);
+    //if (k>127) k=127;
+    desti[i]=rtbl[k];
+  } */
+}
+
+void kasittelesp(char *desti) {
+  int i, j, k;
+  static int temp[20000], temp2[20000];
+
+  fill32(temp, 20000, 0); fill32(temp2, 20000, 0);
+  for (j=0; j<200; j++) for (i=0; i<80; i++) {
+    temp[j*100+i+10]=desti[j*80+i];
+  }
+  for (i=0; i<20000; i++) desti[i]=temp[i];
+  for (i=0; i<20000; i++) temp[i]=desti[i]*262144;
+
+  for (i=0; i<20; i++) {
+    for (j=1*100; j<199*100; j++) {
+      temp2[j]=(temp[j]+temp[j-100]+temp[j-1]+temp[j+1]+temp[j+100])/5;
+    }
+    for (j=1*100; j<199*100; j++) {
+      temp[j]=(temp2[j]+temp2[j-100]+temp2[j-1]+temp2[j+1]+temp2[j+100])/5;
+    }
+  }
+
+  fill32(temp2, 20000, 0);
+  for (i=0; i<20000-101; i++) {
+    k=(desti[i]+
+       desti[i+1]+
+       desti[i+100]+
+       desti[i+101])*16+
+       temp[i]*0.0009;
+
+    //k=temp[i]*0.0009;
+    //k=(desti[i]*64)+temp[i]*0.0009;
+    temp2[i]=rtbl[k];
+  }
+  for (i=0; i<20000; i++) desti[i]=temp2[i];
+}
+
+
+void kasittelekuva(char *desti) {
+  int i, j, k;
+  static int temp[64000], temp2[64000];
+
+  fill32(temp, 64000, 0); fill32(temp2, 64000, 0);
+  for (i=0; i<64000; i++) temp[i]=desti[i]*65536;
+
+  for (i=0; i<20; i++) {
+    for (j=1*320; j<199*320; j++) {
+      temp2[j]=(temp[j]+temp[j-320]+temp[j-1]+temp[j+1]+temp[j+320])/5;
+    }
+    for (j=1*320; j<199*320; j++) {
+      temp[j]=(temp2[j]+temp2[j-320]+temp2[j-1]+temp2[j+1]+temp2[j+320])/5;
+    }
+  }
+
+  fill32(temp2, 64000, 0);
+  for (i=0; i<64000-321; i++) {
+    k=(desti[i]+
+       desti[i+1]+
+       desti[i+320]+
+       desti[i+321])*2+
+       temp[i]*0.0009;
+
+    //k=temp[i]*0.0009;
+    //k=(desti[i]*64)+temp[i]*0.0009;
+    temp2[i]=rtbl[k];
+  }
+
+  for (i=0; i<64000; i++) desti[i]=temp2[i];
+
+}
+
+void poksi(char *dest, int x1, int y1, int x2, int y2) {
+  int x, y;
+
+  //for (x=x1; x<x2+1; x++) dest[y1*320*4+x*4]=3;
+  //for (x=x1; x<x2+1; x++) dest[y2*320*4+x*4]=3;
+  //for (y=y1; y<y2+1; y++) dest[y*320*4+x1*4]=3;
+  //for (y=y1; y<y2+1; y++) dest[y*320*4+x2*4]=3;
+  for (x=x1; x<x2+1; x++) dest[y1*320+x]=2;
+  for (x=x1; x<x2+1; x++) dest[y2*320+x]=2;
+  for (y=y1; y<y2+1; y++) dest[y*320+x1]=2;
+  for (y=y1; y<y2+1; y++) dest[y*320+x2]=2;
+}
+
+void pallukka(char *dest, int x1, int y1, int sade, float aa, float la) {
+  int x, y, a;
+
+  for (a=1024*aa; a<1024*la; a++) {
+    x=fsin(a*pi/512.0)*sade+x1;
+    y=fcos(a*pi/512.0)*sade+y1;
+    //if (x>0 && x<80 && y>0 && y<50) dest[y*320*4+x*4]=2;
+    if (x>0 && x<320 && y>0 && y<200) dest[y*320+x]=2;
+  }
+}
+
+void teesk1() {
+  int x, y, i;
+
+  fill32(skuva1, 16000, 0);
+  poksi(skuva1, 4, 4, 316, 196);
+  poksi(skuva1, 4, 4, 160, 196);
+  poksi(skuva1, 4, 4, 316, 100);
+  poksi(skuva1, 4, 50, 160, 150);
+  poksi(skuva1, 24, 4, 44, 196);
+  pallukka(skuva1, 160, 100, 50, 0, 1);
+  for (y=0; y<200; y++) for (x=0; x<80; x++) {
+    i=sp1[y*80+x]*4;
+    if (i>0) skuva1[y*320+x+230]=i;
+  }
+  kasittelekuva(skuva1);
+}
+
+void teesk2() {
+  int x, y, i;
+
+  fill32(skuva2, 16000, 0);
+  poksi(skuva2, 4, 4, 316, 196);
+  poksi(skuva2, 4, 35, 316, 165);
+  poksi(skuva2, 95, 4, 225, 196);
+  poksi(skuva2, 4, 100, 160, 196);
+  pallukka(skuva2, 160, 100, 65, 0, 0.75);
+  for (y=0; y<200; y++) for (x=0; x<80; x++) {
+    i=sp2[y*80+x]*4;
+    if (i>0) skuva2[y*320+x+230]=i;
+  }
+  kasittelekuva(skuva2);
+}
+
+
+void teesk3() {
+  int x, y, i;
+
+  fill32(skuva3, 16000, 0);
+  poksi(skuva3, 160, 4, 316, 196);
+  poksi(skuva3, 4, 100, 160, 196);
+  poksi(skuva3, 4, 4, 24, 196);
+  poksi(skuva3, 4, 4, 44, 196);
+  pallukka(skuva3, 160, 100, 96, 0.5, 1);
+  for (y=0; y<200; y++) for (x=0; x<80; x++) {
+    i=sp3[y*80+x]*4;
+    if (i>0) skuva3[y*320+x+230]=i;
+  }
+  kasittelekuva(skuva3);
+}
+
+void teesk4() {
+  int x, y, i;
+
+  fill32(skuva4, 16000, 0);
+  poksi(skuva4, 4, 4, 316, 196);
+  poksi(skuva4, 95, 14, 306, 186);
+  for (y=0; y<200; y++) for (x=0; x<80; x++) {
+    i=sp4[y*80+x]*4;
+    if (i>0) skuva4[y*320+x+10]=i;
+  }
+  kasittelekuva(skuva4);
+}
+
+
+
+void teesk5() {
+  int x, y, i;
+
+  fill32(skuva5, 16000, 0);
+  poksi(skuva5, 4, 4, 316, 196);
+  poksi(skuva5, 160, 4, 240, 196);
+  poksi(skuva5, 4, 66, 316, 133);
+
+  poksi(skuva5, 250, 14, 306, 56);
+  poksi(skuva5, 250, 76, 306, 123);
+  poksi(skuva5, 250, 143, 306, 186);
+  for (y=0; y<200; y++) for (x=0; x<80; x++) {
+    i=sp5[y*80+x]*4;
+    if (i>0) skuva5[y*320+x+10]=i;
+  }
+  kasittelekuva(skuva5);
+}
+
+void teesk6() {
+  int x, y, i;
+
+  fill32(skuva6, 16000, 0);
+  poksi(skuva6, 4, 4, 316, 196);
+  poksi(skuva6, 4, 4, 160, 100);
+  poksi(skuva6, 160, 100, 316, 196);
+  pallukka(skuva6, 160, 100, 96, 0, 0.25);
+  pallukka(skuva6, 160, 100, 96, 0.5, 0.75);
+  for (y=0; y<200; y++) for (x=0; x<80; x++) {
+    i=sp6[y*80+x]*4;
+    if (i>0) skuva6[y*320+x+230]=i;
+  }
+  kasittelekuva(skuva6);
+}
+
+
+
+int temppi[65536];
+void first(char *m) {
+  int x;
+  int *y;
+  for (y=temppi; y<temppi+65536; y+=1024) for (x=0; x<256; x+=8) {
+    y[x]=(*m&0xf)<<16; y[x+4]=(*m++>>4&0xf)<<16;
+  }
+}
+void last(char *m) {
+  int a;
+  int *i;
+  for (i=temppi; i<temppi+65536; i++) {
+    a=*i;
+    if (a<0) a=0;
+    if (a>1048575) a=1048575;
+    *m++=(char)(a>>12);
+  }
+}
+void ip(int a, int d) {
+  int yd=d&0xff00, yd3=yd*3;
+  int xd=d&0xff, xd3=xd*3;
+  int x, y;
+  for (y=yd; y<65536; y+=a&0xff00)
+    for (x=xd; x<256; x+=a&0xff)
+      temppi[y+x]=(temppi[(y-yd &0xff00)+(x-xd &0xff)]
+                  +temppi[(y+yd &0xff00)+(x+xd &0xff)])*19
+                 -(temppi[(y-yd3&0xff00)+(x-xd3&0xff)]
+                  +temppi[(y+yd3&0xff00)+(x+xd3&0xff)])*3+16>>5;
+/*  for (y=0; y<65536; y+=a&0xff00)
+    for (x=0; x<256; x+=a&0xff)
+      temppi[y+x]=temppi[y+x]*2
+                 +temppi[(y-yd&0xff00)+(x-xd&0xff)]
+                 +temppi[(y+yd&0xff00)+(x+xd&0xff)]+2>>2;*/
+  for (y=0; y<65536; y+=a&0xff00)
+    for (x=0; x<256; x+=a&0xff)
+      temppi[y+x]=temppi[y+x]*32
+                +(temppi[(y-yd &0xff00)+(x-xd &0xff)]
+                 +temppi[(y+yd &0xff00)+(x+xd &0xff)])*19
+                -(temppi[(y-yd3&0xff00)+(x-xd3&0xff)]
+                 +temppi[(y+yd3&0xff00)+(x+xd3&0xff)])*3+32>>6;
+}
+void domap(char *src, char *dest, int rez0) {
+  first(src);
+  if (rez0>=2) { ip(0x404, 0x002); ip(0x402, 0x200); }
+  if (rez0>=1) { ip(0x202, 0x001); ip(0x201, 0x100); }
+  last(dest);
+}
+
+void prekalkutsjon() {
+  int x, y, i;
+  float u, v, s, t;
+
+  for (y=0; y<200; y++) for (x=0; x<320; x++) {
+    u=159.75-x; v=(99.75-y)*1.2;
+    t=fpatan(u, v)/pi*256.0+256.0;
+    s=fsqrt(u*u+v*v)*1.25*0.5;
+    s=fsqrt(s*128.0);
+    s+=t*(1/512.0);
+    tunneli[y*320+x]=(qftol(127-s)&0x7f)*512+(qftol(t)&0x1ff);
+  }
+  for (i=0; i<65536; i++) radiaali[i]=65535;
+  for (i=0; i<64000; i++) radiaali[tunneli[i]&0xffff]=i;
+  for (i=48000; i>=0; i--) if (radiaali[i]==65535) radiaali[i]=radiaali[i+1];
+  for (i=16000; i<65536; i++) if (radiaali[i]==65535) radiaali[i]=radiaali[i-1];
+
+/*  for (y=0; y<512; y++) for (x=0; x<128; x++) {
+    u=160+sin(y*pi/256.0)*x/1.335*2;
+    v=100-cos(y*pi/256.0)*x/1.335*2;
+    if (u<0) u=0; if (u>319) u=319; if (v<0) v=0; if (v>199) v=199;
+    radiaali[(127-x)*512+511-y]=(int)v*320+(int)u;
+  }*/
+}
+
+void precalculatemappi() {
+  int x,y,i;
+
+  for (y=0; y<256; y++) for (x=0; x<256; x++) mappi2[(y<<8)+x]=rand();
+  for (i=0; i<32; i++) {
+    for (y=0; y<256; y++) for (x=0; x<256; x++) {
+      mappi2[(y<<8)+x]=(mappi2[(y<<8)+x]+mappi2[(y+1<<8&0xff00)+(x+1&0xff)]
+                       +mappi2[(y<<8)+(x+1&0xff)]+mappi2[(y+1<<8&0xff00)+x]+(rand()>>13)-1)>>2;
+    }
+  }
+  move32(mappi2, mappi3, 16384);
+  for (i=0; i<65536; i++) mappi2[i]=rtbl[128+(mappi2[i]-128)*2];
+  for (i=0; i<65536; i++) mappi3[i]=rtbl[128+(mappi3[i]-128)*5];
+  for (y=0; y<256; y++) for (x=0; x<256; x++) {
+    i=1000000.0/((y-128)*(y-128)+(x-128)*(x-128)+500);
+    mappi3[y*256+x]=rtbl[mappi3[y*256+x]*i>>8];
+  }
+}
+
+Material *lataatexture(void *data, int xs, int ys, int sb, int ds, int db) {
+  Material *m=halloc(sizeof(Material));
+  int x, y;
+  int u, v, us, vs;
+  char *p;
+  if (ds==0) ds=10;
+  if (ds!=10 || db!=1 || sb!=1) return 0;
+  us=xs<<16>>ds; vs=ys<<16>>ds;
+  m->txt1.data=halloc(1<<ds+ds);
+  for (y=0; y<1<<ds; y++) for (x=0; x<1<<ds; x++) {
+    u=x*us; v=y*vs; p=((char*)data)+(v>>16)*xs+(u>>16);
+    m->txt1.data[uv2i(x, y)]=p[   0]*(256-(u>>8&255))*(256-(v>>8&255))
+                            +p[   1]*(    (u>>8&255))*(256-(v>>8&255))
+                            +p[  xs]*(256-(u>>8&255))*(    (v>>8&255))
+                            +p[xs+1]*(    (u>>8&255))*(    (v>>8&255))+32768>>16;
+  }
+  return m;
+}
+
+
+
+
+//////////////////////////////////////////////////// EFEKTIT
+
+
+void teelaaser(char *dest, ushort *zbuf) {
+  int x, y;
+  char *d=dest;
+  ushort *z=zbuf;
+
+  for (y=0; y<200; y++) for (x=0; x<320; x++, d++, z++) {
+    *d=rtbl[*d*laasertaul[*z]>>6];
+
+    //if (x>95 && x<305 && y>14 && y<185)
+      //if (*z>7000) *d=rtbl[*d+rand()&15+10];
+      //else *d=0;
+    if (x<96 || x>304 || y<15 || y>184) *d=0;
+    else if (*z<7000) *d=rtbl[*d+(rand()&15)+15];
+      //else *d=0;
+  }
+}
+
+
+
+void teeharmaastavari(ushort *dest, char *src, char *plasma, int *paletti, int br) {
+/*  ushort *dmax=dest+64000;
+  if (br==65536) for (; dest<dmax; dest++, src++, plasma++) *dest=paletti[*src+(*plasma<<8)];
+    else for (; dest<dmax; dest++, src++, plasma++) *dest=paletti[(*src*br>>16)+(*plasma<<8)];
+*/
+
+  ushort *dmax=dest+64000;
+  int x, y, s, p;
+  if (br==65536) {
+    for (y=0; y<200; y+=4, dest+=960, src+=960, plasma+=960) {
+      for (dmax=dest+320; dest<dmax; dest+=4, src+=4, plasma+=4) {
+        s=((int*)src)[  0]; p=((int*)plasma)[  0];
+        ((int*)dest)[  0]=paletti[(s    &255)+(p<<8&0xff00)]+(paletti[(s>>8 &255)+(p    &0xff00)]<<16);
+        ((int*)dest)[  1]=paletti[(s>>16&255)+(p>>8&0xff00)]+(paletti[(s>>24&255)+(p>>16&0xff00)]<<16);
+        s=((int*)src)[ 80]; p=((int*)plasma)[ 80];
+        ((int*)dest)[160]=paletti[(s    &255)+(p<<8&0xff00)]+(paletti[(s>>8 &255)+(p    &0xff00)]<<16);
+        ((int*)dest)[161]=paletti[(s>>16&255)+(p>>8&0xff00)]+(paletti[(s>>24&255)+(p>>16&0xff00)]<<16);
+        s=((int*)src)[160]; p=((int*)plasma)[160];
+        ((int*)dest)[320]=paletti[(s    &255)+(p<<8&0xff00)]+(paletti[(s>>8 &255)+(p    &0xff00)]<<16);
+        ((int*)dest)[321]=paletti[(s>>16&255)+(p>>8&0xff00)]+(paletti[(s>>24&255)+(p>>16&0xff00)]<<16);
+        s=((int*)src)[240]; p=((int*)plasma)[240];
+        ((int*)dest)[480]=paletti[(s    &255)+(p<<8&0xff00)]+(paletti[(s>>8 &255)+(p    &0xff00)]<<16);
+        ((int*)dest)[481]=paletti[(s>>16&255)+(p>>8&0xff00)]+(paletti[(s>>24&255)+(p>>16&0xff00)]<<16);
+      }
+    }
+  } else {
+    for (; dest<dmax; dest+=4, src+=4, plasma+=4) {
+      ((int*)dest)[0]=paletti[(src[0]*br>>16)+(plasma[0]<<8)]+(paletti[(src[1]*br>>16)+(plasma[1]<<8)]<<16);
+      ((int*)dest)[1]=paletti[(src[2]*br>>16)+(plasma[2]<<8)]+(paletti[(src[3]*br>>16)+(plasma[3]<<8)]<<16);
+    }
+  }
+}
+
+
+void teeharmaastavari2(ushort *dest, char *src, char *plasma, int *paletti, int br) {
+  ushort *dmax=dest+64000;
+  if (br==65536) for (; dest<dmax; dest++, src++, plasma++) *dest=paletti[*src+(*plasma>>2<<8)];
+    else for (; dest<dmax; dest++, src++, plasma++) *dest=paletti[(*src*br>>16)+(*plasma>>2<<8)];
+
+}
+
+
+void inter8x8(char *dest, int x1, int y1, gridfx *g) {
+  int x, y, u, v, c, a;
+  int u_xinc, u_yinc, u_xyinc;
+  int v_xinc, v_yinc, v_xyinc;
+  int c_xinc, c_yinc, c_xyinc;
+  char *d=dest;
+
+  u_xinc=(g[1].u-g[0].u)>>4;
+  u_yinc=(g[41].u-g[0].u)>>3;
+  v_xinc=(g[1].v-g[0].v)>>4;
+  v_yinc=(g[41].v-g[0].v)>>3;
+  c_xinc=(g[1].c-g[0].c)>>4;
+  c_yinc=(g[41].c-g[0].c)>>3;
+
+  u_xyinc=g[42].u-g[41].u-g[1].u+g[0].u>>7;
+  v_xyinc=g[42].v-g[41].v-g[1].v+g[0].v>>7;
+  c_xyinc=g[42].c-g[41].c-g[1].c+g[0].c>>7;
+//  u_xyinc=v_xyinc=c_xyinc=0;
+  u=g[0].u;
+  v=g[0].v;
+  c=g[0].c;
+  for (y=0; y<8; y++) {
+    for (x=0; x<8; x++) {
+//      *d++=rtbl[(mappi2[(u>>16&0xff00)+(v>>24&0xff)]*c>>23)+1024];
+      a=sperikal2[(v>>16&0xff00)+(u>>24&0xff)];
+      u+=u_xinc; v+=v_xinc; c+=c_xinc;
+      *d++=a+sperikal2[(v>>16&0xff00)+(u>>24&0xff)]>>1;
+      u+=u_xinc; v+=v_xinc; c+=c_xinc;
+    }
+    u+=u_yinc-16*u_xinc;
+    v+=v_yinc-16*v_xinc;
+    c+=c_yinc-16*c_xinc;
+    u_xinc+=u_xyinc;
+    v_xinc+=v_xyinc;
+    c_xinc+=c_xyinc;
+    d+=312;
+  }
+}
+
+void fill8x8(char *dest) {
+  long *d=(long *)dest;
+  d[0]=0;   d[1]=0;
+  d[80]=0;  d[81]=0;
+  d[160]=0; d[161]=0;
+  d[240]=0; d[241]=0;
+  d[320]=0; d[321]=0;
+  d[400]=0; d[401]=0;
+  d[480]=0; d[481]=0;
+  d[560]=0; d[561]=0;
+}
+
+
+float camera[3][3];
+float suunta[3];
+float perx, pery;
+float posx, posy, posz;
+
+
+void ammuu_sade(gridfx *g, int x, int y) {
+  float px, py, pz, t;
+  float ax, bx, cx;
+  float test;
+
+  suunta[0]=camera[2][0] - camera[1][0]*(y-200)*pery - camera[0][0]*(x-320)*perx;
+  suunta[1]=camera[2][1] - camera[1][1]*(y-200)*pery - camera[0][1]*(x-320)*perx;
+  suunta[2]=camera[2][2] - camera[1][2]*(y-200)*pery - camera[0][2]*(x-320)*perx;
+
+  ax=(suunta[0]*suunta[0])+(suunta[1]*suunta[1])+(suunta[2]*suunta[2]);
+  bx=(suunta[0]*posx)+(suunta[1]*posy)+(suunta[2]*posz);
+  cx=(posx*posx)+(posy*posy)+(posz*posz)-1;
+
+  test=bx*bx-ax*cx;
+  if (test<0) {
+    g[0].c=ulkona;
+  } else {
+    t=(-fsqrt(test)-bx)/ax;
+    px=posx+t*suunta[0];
+    py=posy+t*suunta[1];
+    pz=posz+t*suunta[2];
+
+/*    qftolp(&g[0].u, fpatan(px, py)/pi*128*16777216);
+    qftolp(&g[0].v, fpatan(pz, fsqrt(px*px+py*py))*128*16777216);
+    qftolp(&g[0].c, 65536*255-t*65536*64);*/
+    g[0].u=fpatan(px, py)/pi*128.0*16777216.0;
+    g[0].v=(int)(fpatan(pz, fsqrt(px*px+py*py))/pi*128.0*16777216.0)<<1;
+    g[0].c=65536*255-t*65536*64;
+    if (g[0].c<65536) g[0].c=65536;
+//    if (g[0].c>250*65536) g[0].c=250*65536;
+  }
+}
+
+
+
+void subdiv1(int x, int y, gridfx *d, gridfx *s1, gridfx *s2) {//gridfx *d, gridfx *s1, gridfx *s2) {
+  if (s1->c==ulkona && s2->c==ulkona) d->c=ulkona; else
+    if (s1->c!=ulkona && s2->c!=ulkona && (unsigned)(s1->u-s2->u+0x40000000)<0x80000000) {
+      d->u=s1->u+(s2->u-s1->u>>1); d->v=s1->v+(s2->v-s1->v>>1); d->c=s1->c+(s2->c-s1->c>>1);
+    } else ammuu_sade(d, x, y);
+}
+void subdiv8x8(char *dest, int x1, int y1, gridfx *g) {
+  int x, y;
+  static gridfx gtmp[17*17], *gp;
+
+  fill32(gtmp, sizeof(gtmp)>>2, 0);
+  gtmp[0]=g[0]; gtmp[16]=g[1]; gtmp[16*17]=g[41]; gtmp[16*17+16]=g[42];
+/*  subdiv1(x1+4, y1+0, gtmp+4+0*9, gtmp+0+0*9, gtmp+8+0*9);
+  subdiv1(x1+4, y1+8, gtmp+4+8*9, gtmp+0+8*9, gtmp+8+8*9);
+
+  subdiv1(x1+0, y1+4, gtmp+0+4*9, gtmp+0+0*9, gtmp+0+8*9);
+  subdiv1(x1+4, y1+4, gtmp+4+4*9, gtmp+4+0*9, gtmp+4+8*9);
+  subdiv1(x1+8, y1+4, gtmp+8+4*9, gtmp+8+0*9, gtmp+8+8*9);
+
+  subdiv1(x1+2, y1+0, gtmp+2+0*9, gtmp+0+0*9, gtmp+4+0*9);
+  subdiv1(x1+2, y1+4, gtmp+2+4*9, gtmp+0+4*9, gtmp+4+4*9);
+  subdiv1(x1+2, y1+8, gtmp+2+8*9, gtmp+0+8*9, gtmp+4+8*9);
+  subdiv1(x1+6, y1+0, gtmp+6+0*9, gtmp+4+0*9, gtmp+8+0*9);
+  subdiv1(x1+6, y1+4, gtmp+6+4*9, gtmp+4+4*9, gtmp+8+4*9);
+  subdiv1(x1+6, y1+8, gtmp+6+8*9, gtmp+4+8*9, gtmp+8+8*9);
+
+  subdiv1(x1+0, y1+2, gtmp+0+2*9, gtmp+0+0*9, gtmp+0+4*9);
+  subdiv1(x1+2, y1+2, gtmp+2+2*9, gtmp+2+0*9, gtmp+2+4*9);
+  subdiv1(x1+4, y1+2, gtmp+4+2*9, gtmp+4+0*9, gtmp+4+4*9);
+  subdiv1(x1+6, y1+2, gtmp+6+2*9, gtmp+6+0*9, gtmp+6+4*9);
+  subdiv1(x1+8, y1+2, gtmp+8+2*9, gtmp+8+0*9, gtmp+8+4*9);
+  subdiv1(x1+0, y1+6, gtmp+0+6*9, gtmp+0+4*9, gtmp+0+8*9);
+  subdiv1(x1+2, y1+6, gtmp+2+6*9, gtmp+2+4*9, gtmp+2+8*9);
+  subdiv1(x1+4, y1+6, gtmp+4+6*9, gtmp+4+4*9, gtmp+4+8*9);
+  subdiv1(x1+6, y1+6, gtmp+6+6*9, gtmp+6+4*9, gtmp+6+8*9);
+  subdiv1(x1+8, y1+6, gtmp+8+6*9, gtmp+8+4*9, gtmp+8+8*9);
+
+  subdiv1(x1+1, y1+0, gtmp+1+0*9, gtmp+0+0*9, gtmp+2+0*9);
+  subdiv1(x1+1, y1+2, gtmp+1+2*9, gtmp+0+2*9, gtmp+2+2*9);
+  subdiv1(x1+1, y1+4, gtmp+1+4*9, gtmp+0+4*9, gtmp+2+4*9);
+  subdiv1(x1+1, y1+6, gtmp+1+6*9, gtmp+0+6*9, gtmp+2+6*9);
+  subdiv1(x1+1, y1+8, gtmp+1+8*9, gtmp+0+8*9, gtmp+2+8*9);
+  subdiv1(x1+3, y1+0, gtmp+3+0*9, gtmp+2+0*9, gtmp+4+0*9);
+  subdiv1(x1+3, y1+2, gtmp+3+2*9, gtmp+2+2*9, gtmp+4+2*9);
+  subdiv1(x1+3, y1+4, gtmp+3+4*9, gtmp+2+4*9, gtmp+4+4*9);
+  subdiv1(x1+3, y1+6, gtmp+3+6*9, gtmp+2+6*9, gtmp+4+6*9);
+  subdiv1(x1+3, y1+8, gtmp+3+8*9, gtmp+2+8*9, gtmp+4+8*9);
+  subdiv1(x1+5, y1+0, gtmp+5+0*9, gtmp+4+0*9, gtmp+6+0*9);
+  subdiv1(x1+5, y1+2, gtmp+5+2*9, gtmp+4+2*9, gtmp+6+2*9);
+  subdiv1(x1+5, y1+4, gtmp+5+4*9, gtmp+4+4*9, gtmp+6+4*9);
+  subdiv1(x1+5, y1+6, gtmp+5+6*9, gtmp+4+6*9, gtmp+6+6*9);
+  subdiv1(x1+5, y1+8, gtmp+5+8*9, gtmp+4+8*9, gtmp+6+8*9);
+  subdiv1(x1+7, y1+0, gtmp+7+0*9, gtmp+6+0*9, gtmp+8+0*9);
+  subdiv1(x1+7, y1+2, gtmp+7+2*9, gtmp+6+2*9, gtmp+8+2*9);
+  subdiv1(x1+7, y1+4, gtmp+7+4*9, gtmp+6+4*9, gtmp+8+4*9);
+  subdiv1(x1+7, y1+6, gtmp+7+6*9, gtmp+6+6*9, gtmp+8+6*9);
+  subdiv1(x1+7, y1+8, gtmp+7+8*9, gtmp+6+8*9, gtmp+8+8*9);
+
+  subdiv1(x1+0, y1+1, gtmp+0+1*9, gtmp+0+0*9, gtmp+0+2*9);
+  subdiv1(x1+1, y1+1, gtmp+1+1*9, gtmp+1+0*9, gtmp+1+2*9);
+  subdiv1(x1+2, y1+1, gtmp+2+1*9, gtmp+2+0*9, gtmp+2+2*9);
+  subdiv1(x1+3, y1+1, gtmp+3+1*9, gtmp+3+0*9, gtmp+3+2*9);
+  subdiv1(x1+4, y1+1, gtmp+4+1*9, gtmp+4+0*9, gtmp+4+2*9);
+  subdiv1(x1+5, y1+1, gtmp+5+1*9, gtmp+5+0*9, gtmp+5+2*9);
+  subdiv1(x1+6, y1+1, gtmp+6+1*9, gtmp+6+0*9, gtmp+6+2*9);
+  subdiv1(x1+7, y1+1, gtmp+7+1*9, gtmp+7+0*9, gtmp+7+2*9);
+  subdiv1(x1+0, y1+3, gtmp+0+3*9, gtmp+0+2*9, gtmp+0+4*9);
+  subdiv1(x1+1, y1+3, gtmp+1+3*9, gtmp+1+2*9, gtmp+1+4*9);
+  subdiv1(x1+2, y1+3, gtmp+2+3*9, gtmp+2+2*9, gtmp+2+4*9);
+  subdiv1(x1+3, y1+3, gtmp+3+3*9, gtmp+3+2*9, gtmp+3+4*9);
+  subdiv1(x1+4, y1+3, gtmp+4+3*9, gtmp+4+2*9, gtmp+4+4*9);
+  subdiv1(x1+5, y1+3, gtmp+5+3*9, gtmp+5+2*9, gtmp+5+4*9);
+  subdiv1(x1+6, y1+3, gtmp+6+3*9, gtmp+6+2*9, gtmp+6+4*9);
+  subdiv1(x1+7, y1+3, gtmp+7+3*9, gtmp+7+2*9, gtmp+7+4*9);
+  subdiv1(x1+0, y1+5, gtmp+0+5*9, gtmp+0+4*9, gtmp+0+6*9);
+  subdiv1(x1+1, y1+5, gtmp+1+5*9, gtmp+1+4*9, gtmp+1+6*9);
+  subdiv1(x1+2, y1+5, gtmp+2+5*9, gtmp+2+4*9, gtmp+2+6*9);
+  subdiv1(x1+3, y1+5, gtmp+3+5*9, gtmp+3+4*9, gtmp+3+6*9);
+  subdiv1(x1+4, y1+5, gtmp+4+5*9, gtmp+4+4*9, gtmp+4+6*9);
+  subdiv1(x1+5, y1+5, gtmp+5+5*9, gtmp+5+4*9, gtmp+5+6*9);
+  subdiv1(x1+6, y1+5, gtmp+6+5*9, gtmp+6+4*9, gtmp+6+6*9);
+  subdiv1(x1+7, y1+5, gtmp+7+5*9, gtmp+7+4*9, gtmp+7+6*9);
+  subdiv1(x1+0, y1+7, gtmp+0+7*9, gtmp+0+6*9, gtmp+0+8*9);
+  subdiv1(x1+1, y1+7, gtmp+1+7*9, gtmp+1+6*9, gtmp+1+8*9);
+  subdiv1(x1+2, y1+7, gtmp+2+7*9, gtmp+2+6*9, gtmp+2+8*9);
+  subdiv1(x1+3, y1+7, gtmp+3+7*9, gtmp+3+6*9, gtmp+3+8*9);
+  subdiv1(x1+4, y1+7, gtmp+4+7*9, gtmp+4+6*9, gtmp+4+8*9);
+  subdiv1(x1+5, y1+7, gtmp+5+7*9, gtmp+5+6*9, gtmp+5+8*9);
+  subdiv1(x1+6, y1+7, gtmp+6+7*9, gtmp+6+6*9, gtmp+6+8*9);
+  subdiv1(x1+7, y1+7, gtmp+7+7*9, gtmp+7+6*9, gtmp+7+8*9);*/
+
+  subdiv1(x1+ 8, y1+0, gtmp+ 8+ 0*17, gtmp+ 0+ 0*17, gtmp+16+ 0*17);
+  subdiv1(x1+ 4, y1+0, gtmp+ 4+ 0*17, gtmp+ 0+ 0*17, gtmp+ 8+ 0*17);
+  subdiv1(x1+12, y1+0, gtmp+12+ 0*17, gtmp+ 8+ 0*17, gtmp+16+ 0*17);
+  subdiv1(x1+ 2, y1+0, gtmp+ 2+ 0*17, gtmp+ 0+ 0*17, gtmp+ 4+ 0*17);
+  subdiv1(x1+ 6, y1+0, gtmp+ 6+ 0*17, gtmp+ 4+ 0*17, gtmp+ 8+ 0*17);
+  subdiv1(x1+10, y1+0, gtmp+10+ 0*17, gtmp+ 8+ 0*17, gtmp+12+ 0*17);
+  subdiv1(x1+14, y1+0, gtmp+14+ 0*17, gtmp+12+ 0*17, gtmp+16+ 0*17);
+  subdiv1(x1+ 1, y1+0, gtmp+ 1+ 0*17, gtmp+ 0+ 0*17, gtmp+ 2+ 0*17);
+  subdiv1(x1+ 3, y1+0, gtmp+ 3+ 0*17, gtmp+ 2+ 0*17, gtmp+ 4+ 0*17);
+  subdiv1(x1+ 5, y1+0, gtmp+ 5+ 0*17, gtmp+ 4+ 0*17, gtmp+ 6+ 0*17);
+  subdiv1(x1+ 7, y1+0, gtmp+ 7+ 0*17, gtmp+ 6+ 0*17, gtmp+ 8+ 0*17);
+  subdiv1(x1+ 9, y1+0, gtmp+ 9+ 0*17, gtmp+ 8+ 0*17, gtmp+10+ 0*17);
+  subdiv1(x1+11, y1+0, gtmp+11+ 0*17, gtmp+10+ 0*17, gtmp+12+ 0*17);
+  subdiv1(x1+13, y1+0, gtmp+13+ 0*17, gtmp+12+ 0*17, gtmp+14+ 0*17);
+  subdiv1(x1+15, y1+0, gtmp+15+ 0*17, gtmp+14+ 0*17, gtmp+16+ 0*17);
+  subdiv1(x1+ 8, y1+16, gtmp+ 8+16*17, gtmp+ 0+16*17, gtmp+16+16*17);
+  subdiv1(x1+ 4, y1+16, gtmp+ 4+16*17, gtmp+ 0+16*17, gtmp+ 8+16*17);
+  subdiv1(x1+12, y1+16, gtmp+12+16*17, gtmp+ 8+16*17, gtmp+16+16*17);
+  subdiv1(x1+ 2, y1+16, gtmp+ 2+16*17, gtmp+ 0+16*17, gtmp+ 4+16*17);
+  subdiv1(x1+ 6, y1+16, gtmp+ 6+16*17, gtmp+ 4+16*17, gtmp+ 8+16*17);
+  subdiv1(x1+10, y1+16, gtmp+10+16*17, gtmp+ 8+16*17, gtmp+12+16*17);
+  subdiv1(x1+14, y1+16, gtmp+14+16*17, gtmp+12+16*17, gtmp+16+16*17);
+  subdiv1(x1+ 1, y1+16, gtmp+ 1+16*17, gtmp+ 0+16*17, gtmp+ 2+16*17);
+  subdiv1(x1+ 3, y1+16, gtmp+ 3+16*17, gtmp+ 2+16*17, gtmp+ 4+16*17);
+  subdiv1(x1+ 5, y1+16, gtmp+ 5+16*17, gtmp+ 4+16*17, gtmp+ 6+16*17);
+  subdiv1(x1+ 7, y1+16, gtmp+ 7+16*17, gtmp+ 6+16*17, gtmp+ 8+16*17);
+  subdiv1(x1+ 9, y1+16, gtmp+ 9+16*17, gtmp+ 8+16*17, gtmp+10+16*17);
+  subdiv1(x1+11, y1+16, gtmp+11+16*17, gtmp+10+16*17, gtmp+12+16*17);
+  subdiv1(x1+13, y1+16, gtmp+13+16*17, gtmp+12+16*17, gtmp+14+16*17);
+  subdiv1(x1+15, y1+16, gtmp+15+16*17, gtmp+14+16*17, gtmp+16+16*17);
+  for (x=0; x<16; x++) {
+    subdiv1(x1+x, y1+ 8, gtmp+x+ 8*17, gtmp+x+ 0*17, gtmp+x+16*17);
+    subdiv1(x1+x, y1+ 4, gtmp+x+ 4*17, gtmp+x+ 0*17, gtmp+x+ 8*17);
+    subdiv1(x1+x, y1+12, gtmp+x+12*17, gtmp+x+ 8*17, gtmp+x+16*17);
+    subdiv1(x1+x, y1+ 2, gtmp+x+ 2*17, gtmp+x+ 0*17, gtmp+x+ 4*17);
+    subdiv1(x1+x, y1+ 6, gtmp+x+ 6*17, gtmp+x+ 4*17, gtmp+x+ 8*17);
+    subdiv1(x1+x, y1+10, gtmp+x+10*17, gtmp+x+ 8*17, gtmp+x+12*17);
+    subdiv1(x1+x, y1+14, gtmp+x+14*17, gtmp+x+12*17, gtmp+x+16*17);
+    subdiv1(x1+x, y1+ 1, gtmp+x+ 1*17, gtmp+x+ 0*17, gtmp+x+ 2*17);
+    subdiv1(x1+x, y1+ 3, gtmp+x+ 3*17, gtmp+x+ 2*17, gtmp+x+ 4*17);
+    subdiv1(x1+x, y1+ 5, gtmp+x+ 5*17, gtmp+x+ 4*17, gtmp+x+ 6*17);
+    subdiv1(x1+x, y1+ 7, gtmp+x+ 7*17, gtmp+x+ 6*17, gtmp+x+ 8*17);
+    subdiv1(x1+x, y1+ 9, gtmp+x+ 9*17, gtmp+x+ 8*17, gtmp+x+10*17);
+    subdiv1(x1+x, y1+11, gtmp+x+11*17, gtmp+x+10*17, gtmp+x+12*17);
+    subdiv1(x1+x, y1+13, gtmp+x+13*17, gtmp+x+12*17, gtmp+x+14*17);
+    subdiv1(x1+x, y1+15, gtmp+x+15*17, gtmp+x+14*17, gtmp+x+16*17);
+  }
+
+  for (gp=gtmp, y=0; y<16; y++, gp++) for (x=0; x<16; x++, gp++)
+    gp->c=gp->c==ulkona?0:sperikal2[(gp->v>>16&0xff00)+(gp->u>>24&0xff)];
+/*  for (gp=gtmp, y=0; y<8; y++, gp++) for (x=0; x<8; x++, gp++) {
+    if (gp->c==ulkona) dest[y*320+x]=0; else
+//      dest[(y+y1)*320+x+x1]=rtbl[(mappi2[(gp->u>>16&0xff00)+(gp->v>>24&0xff)]*gp->c>>23)+1024];
+      dest[y*320+x]=sperikal2[(gp->v>>16&0xff00)+(gp->u>>24&0xff)];
+  }*/
+  for (gp=gtmp, y=0; y<8; y++, gp+=18) {
+    char *d=dest+y*320;
+    for (x=0; x<8; x++, gp+=2) *d++=gp[0].c+gp[1].c+gp[17].c+gp[18].c+2>>2;
+  }
+
+}
+
+
+
+void rantapallo(char *dest, float _posx, float _posy, float _posz,
+                float tgtx, float tgty, float tgtz) {
+  float px, py, pz, t;
+  int x, y, u, v;
+  float ax, bx, cx;
+  int xypos;
+  float r, test;
+  gridfx *p;
+
+  posx=_posx; posy=_posy; posz=_posz;
+  teematriisi2(camera, tgtx-posx, tgty-posy, tgtz-posz);
+  //pery=1/300.0; perx=1/360.0;
+  pery=1/200.0; perx=1/240.0;
+  for (y=0; y<26; y++) for (x=0; x<41; x++) ammuu_sade(pallero+y*41+x, x*16, y*16);
+
+  for (y=0; y<25; y++)
+    for (x=0; x<40; x++) {
+      char *d2=dest+y*320*8+x*8;
+      xypos=y*41+x; p=pallero+xypos;
+      if (p[0].c!=ulkona && p[1].c!=ulkona && p[41].c!=ulkona && p[42].c!=ulkona
+         && (unsigned)(p[0].u-p[42].u+0x40000000)<0x80000000 && (unsigned)(p[1].u-p[41].u+0x40000000)<0x80000000)
+        inter8x8(d2, x<<4, y<<4, pallero+xypos);
+      else if (p[0].c==ulkona && p[1].c==ulkona && p[41].c==ulkona && p[42].c==ulkona)
+        fill8x8(d2);
+      else subdiv8x8(d2, x<<4, y<<4, pallero+xypos);
+  }
+}
+
+void teeradiaali(char *sourke, int *dest) {
+  int x;
+
+  for (x=0; x<65536; x++) dest[x]=tbla2[sourke[radiaali[x]]];
+}
+
+void teeradiaali2(char *sourke, int *dest) {
+  int x;
+
+  for (x=0; x<65536; x++) dest[x]=tblb2[sourke[radiaali[x]]];
+}
+
+void blur2(int *dest, int delta, int p) {
+  int *d;
+
+  p>>=2;
+  if (delta<0) {
+    for (d=dest-delta; d<dest+65536; d++) { d[0]+=(d[delta]-d[0])*p>>14; }
+  } else {
+    for (d=dest+65535-delta; d>=dest; d--) { d[0]+=(d[delta]-d[0])*p>>14; }
+  }
+}
+
+void teeblurri(char *dest) {
+  static int moi[16000];
+  int x, y, i, *p;
+  char *d;
+
+  for (y=0; y<100; y++) for (x=0; x<160; x++) moi[y*160+x]=(dest[y*640+x*2]<<17)+32768;
+  //for (i=0; i<32000; i++) moi[i]=dest[i]<<17;
+  //move32(dest, moi, 64000);
+  for (y=1; y<100; y++)
+  for (p=moi+y*160+3; p<moi+y*160+155; p+=4) {
+    p[ 0]=p[-1]+(p[-157]+(p[ 0]-p[-157]>>3)-p[-1]>>2);
+    p[ 1]=p[ 0]+(p[-156]+(p[ 1]-p[-156]>>3)-p[ 0]>>2);
+    p[ 2]=p[ 1]+(p[-155]+(p[ 2]-p[-155]>>3)-p[ 1]>>2);
+    p[ 3]=p[ 2]+(p[-154]+(p[ 3]-p[-154]>>3)-p[ 2]>>2);
+  }
+
+  for (y=98; y>=0; y--)
+  for (p=moi+y*160+156; p>=moi+y*160+4; p-=4) {
+    p[ 0]=p[ 1]+(p[ 157]+(p[ 0]-p[ 157]>>3)-p[ 1]>>2);
+    p[-1]=p[ 0]+(p[ 156]+(p[-1]-p[ 156]>>3)-p[ 0]>>2);
+    p[-2]=p[-1]+(p[ 155]+(p[-2]-p[ 155]>>3)-p[-1]>>2);
+    p[-3]=p[-2]+(p[ 154]+(p[-3]-p[ 154]>>3)-p[-2]>>2);
+  }
+
+  for (y=0, p=moi; y<100; y++) for (d=dest+y*640, x=0; x<160; x++, p++, d+=2) {
+    d[  0]=rtbl[d[  0]+(p[0]>>16)];
+    d[  1]=rtbl[d[  1]+(p[0]+p[1]>>17)];
+    d[320]=rtbl[d[320]+(p[0]+p[160]>>17)];
+    d[321]=rtbl[d[321]+(p[0]+p[161]>>17)];
+  }
+  //for (i=0; i<64000; i++) dest[i]=rtbl[(moi[i]>>4)];
+}
+
+
+void interpoloi2(int *sourke, char *dest) {
+  int c, d, aa, x, y;
+  char *dest2, *destm;
+  int *s;
+
+  c=c; d=d; aa=aa;
+  s=sourke;
+  for (y=0; y<25; y++, s++) {
+    dest2=dest+y*8*320;
+    for (x=0; x<40; x++, s++, dest2+=8) {
+      destm=dest2+8*(320-8);
+      _asm {
+        mov eax, s
+        mov edi, dest2
+        mov ebx, [eax+4]
+        mov esi, [eax+0]
+        mov aa, ebx
+        mov ecx, [eax+168]
+        mov edx, [eax+164]
+        sub esi, ebx
+        sub edx, ecx
+        sub ecx, ebx
+        add esi, 0x800000
+        add edx, 0x800000
+        and esi, 0xffffff
+        and edx, 0xffffff
+        sub edx, 0x800000
+        sar edx, 3
+        sub esi, 0x800000
+        sar esi, 3
+        add ecx, 0x800000
+        and ecx, 0xffffff
+        sub edx, esi
+        sar edx, 3
+        sub ecx, 0x800000
+        sar ecx, 3
+        mov d, edx
+        mov c, ecx
+
+        innerluuppi:
+          mov ecx, ebx
+          add ebx, esi
+          shr ecx, 16
+          mov edx, ebx
+          shr edx, 16
+          mov ah, cl
+          mov al, dl
+          add ebx, esi
+          shl eax, 16
+          mov ecx, ebx
+          shr ecx, 16
+          add ebx, esi
+          mov ah, cl
+          mov edx, ebx
+          shr edx, 16
+          add ebx, esi
+          mov al, dl
+          mov ecx, ebx
+          shr ecx, 16
+          mov [edi+4], eax
+          mov ah, cl
+          add ebx, esi
+          mov edx, ebx
+          add ebx, esi
+          shr edx, 16
+          mov al, dl
+          shl eax, 16
+          mov ecx, ebx
+          shr ecx, 16
+          add ebx, esi
+          mov ah, cl
+          mov edx, ebx
+          shr edx, 16
+          mov al, dl
+          mov [edi], eax
+
+          add edi, 320
+          mov ebx, aa
+          add ebx, c
+          mov aa, ebx
+          add esi, d
+          cmp edi, destm
+        jb innerluuppi
+      }
+    }
+  }
+}
+void interpoloi3(int *sourke, char *dest) {
+  int c, d, aa, x, y;
+  char *dest2, *destm;
+  int *s;
+
+  c=c; d=d; aa=aa;
+  s=sourke;
+  for (y=0; y<25; y++, s++) {
+    dest2=dest+y*8*320;
+    for (x=0; x<40; x++, s++, dest2+=8) {
+      destm=dest2+8*(320-8);
+      _asm {
+        mov eax, s
+        mov edi, dest2
+        mov ebx, [eax+4]
+        mov esi, [eax+0]
+        mov aa, ebx
+        mov ecx, [eax+168]
+        mov edx, [eax+164]
+        sub esi, ebx
+        sub edx, ecx
+        sub ecx, ebx
+        ;add esi, 0x800000
+        ;add edx, 0x800000
+        ;and esi, 0xffffff
+        ;and edx, 0xffffff
+        ;sub edx, 0x800000
+        sar edx, 3
+        ;sub esi, 0x800000
+        sar esi, 3
+        ;add ecx, 0x800000
+        ;and ecx, 0xffffff
+        sub edx, esi
+        sar edx, 3
+        ;sub ecx, 0x800000
+        sar ecx, 3
+        mov d, edx
+        mov c, ecx
+
+        innerluuppi:
+          mov ecx, ebx
+          add ebx, esi
+          shr ecx, 16
+          mov edx, ebx
+          shr edx, 16
+          mov ah, cl
+          mov al, dl
+          add ebx, esi
+          shl eax, 16
+          mov ecx, ebx
+          shr ecx, 16
+          add ebx, esi
+          mov ah, cl
+          mov edx, ebx
+          shr edx, 16
+          add ebx, esi
+          mov al, dl
+          mov ecx, ebx
+          shr ecx, 16
+          mov [edi+4], eax
+          mov ah, cl
+          add ebx, esi
+          mov edx, ebx
+          add ebx, esi
+          shr edx, 16
+          mov al, dl
+          shl eax, 16
+          mov ecx, ebx
+          shr ecx, 16
+          add ebx, esi
+          mov ah, cl
+          mov edx, ebx
+          shr edx, 16
+          mov al, dl
+          mov [edi], eax
+
+          add edi, 320
+          mov ebx, aa
+          add ebx, c
+          mov aa, ebx
+          add esi, d
+          cmp edi, destm
+        jb innerluuppi
+      }
+    }
+  }
+}
+
+
+void teetunneli3(char *dest, short *hfield,
+                 float posx, float posy, float posz) {
+  float camera[3][3];
+  float suunta[3];
+  float px, py, pz, dx, dy, dz, t;
+  int x, y;
+  float perx, pery;
+  float ax, bx, cx;
+  int xypos;
+  int u, v, test, test2;
+  float r;
+
+  teematriisi2(camera, 0-posx, 0-posy, 0-posz);
+
+  pery=1/12.5;
+  perx=1/15.0;
+  for (y=0; y<26; y++)
+    for (x=0; x<41; x++) {
+      suunta[0]=camera[2][0] + camera[1][0]*(y-13)*pery + camera[0][0]*(x-20)*perx;
+      suunta[1]=camera[2][1] + camera[1][1]*(y-13)*pery + camera[0][1]*(x-20)*perx;
+      suunta[2]=camera[2][2] + camera[1][2]*(y-13)*pery + camera[0][2]*(x-20)*perx;
+
+      ax=(suunta[0]*suunta[0])+(suunta[1]*suunta[1]);
+      bx=(suunta[0]*posx)+(suunta[1]*posy);
+      cx=(posx*posx)+(posy*posy)-1;
+
+      t=(fsqrt(bx*bx-ax*cx)-bx)/ax;
+      px=posx+t*suunta[0];
+      py=posy+t*suunta[1];
+      pz=posz+t*suunta[2];
+
+
+      u=(fpatan(px, py)/pi+1)*128.0*65536.0;
+      v=pz*64*65536.0;
+      r=1+hfield[(v>>8&0xff00)+(u>>16&0xff)]/16384.0;
+
+      ax=(suunta[0]*suunta[0])+(suunta[1]*suunta[1]);
+      bx=(suunta[0]*posx)+(suunta[1]*posy);
+      cx=(posx*posx)+(posy*posy)-r*r;
+
+      t=(fsqrt(bx*bx-ax*cx)-bx)/ax;
+      px=posx+t*suunta[0];
+      py=posy+t*suunta[1];
+      pz=posz+t*suunta[2];
+
+//      dx=px; dy=py; dz=0;
+      dx=px*(1+(hfield[(v-65536>>8&0xff00)+(u>>16&0xff)]-hfield[(v+65536>>8&0xff00)+(u>>16&0xff)])/1024.0);
+      dy=py*(1+(hfield[(v-65536>>8&0xff00)+(u>>16&0xff)]-hfield[(v+65536>>8&0xff00)+(u>>16&0xff)])/1024.0);
+      dz=(hfield[(v>>8&0xff00)+(u-65536>>16&0xff)]-hfield[(v>>8&0xff00)+(u+65536>>16&0xff)])/512.0;
+      r=1/fsqrt(dx*dx+dy*dy);
+
+      u=(fpatan(px, py)/pi+1)*128.0*65536.0;
+      v=pz*64*65536.0;
+
+      xypos=y*41+x;
+//      if (mdata->curord>10)
+//        test=65536*br-((px*px+py*py+pz*pz)*65536);
+      test=256*65536/*fsqrt(px*px+py*py+pz*pz)*/*fsqrt((dx*px+dy*py+dz*pz)/(r*(px*px+py*py+pz*pz)));
+      if (test>250*65536) test=250*65536;
+      if (test<65536) test=65556;
+
+      //test2=(255*65536.0-t*65536*100);//*br2/64.0;
+      //if (test2<32768) test2=32768;
+
+      pienix[xypos]=u;//fpatan(px, py)/pi*1*128*65536);
+      pieniz[xypos]=v;//256*65536-pz*64*65536);
+      qftolp(varjot+xypos, test);
+      //qftolp(varjot2+xypos, test2);
+    }
+  interpoloi2(pienix, isox);
+  interpoloi3(pieniz, isoz);
+  interpoloi3(varjot, valo);
+  //interpoloi3(varjot2, valo2);
+  for (x=0; x<64000; x++) dest[x]=mappi2[(isox[x]<<8)+isoz[x]]*valo[x]>>11;
+/*  for (x=0; x<64000; x++) {
+    test=mappi2[(isox[x]<<8)+isoz[x]];
+    //dest[x]=ppal[test*valo[x]>>7]+spal[test*valo2[x]>>4];
+    dest1[x]=test*valo[x]>>8;
+    dest2[x]=test*valo2[x]>>8;
+  } */
+}
+
+
+void teeufotaso(char *dest, ushort *hf, char *reiat, int joops,
+                float posx, float posy, float posz, float vx, float vy) {
+  float camera[3][3];
+  float suunta[3];
+  float px, py, pz, t;
+  int x, y, i;
+  float perx, pery;
+  float ax, bx, cx;
+  int xypos;
+  int u, v;
+  float r, testi;
+  static int uforajatbl[256];
+
+  teematriisi2(camera, 1-posx, 0-posy, 0-posz);
+
+  pery=1/12.5;
+  perx=1/15.0;
+  for (y=0; y<26; y++)
+    for (x=0; x<41; x++) {
+      suunta[0]=camera[2][0] + camera[1][0]*(y-13)*pery + camera[0][0]*(x-20)*perx;
+      suunta[1]=camera[2][1] + camera[1][1]*(y-13)*pery + camera[0][1]*(x-20)*perx;
+      suunta[2]=camera[2][2] + camera[1][2]*(y-13)*pery + camera[0][2]*(x-20)*perx;
+
+      ax=suunta[0]*suunta[0];
+      bx=suunta[0]*posx;
+      cx=posx*posx-1;
+
+      t=(fsqrt(bx*bx-ax*cx)-bx)/ax;
+      px=posx+t*suunta[0];
+      py=posy+t*suunta[1];
+      pz=posz+t*suunta[2];
+
+      u=(pz*128+128)*65536;
+      if (u<65536) u=65536; if (u>255*65536) u=255*65536;
+      v=(py*128+150)*65536;
+      if (v<65536) v=65536; if (v>255*65536) v=255*65536;
+      testi=hf[(v>>8&0xff00)+(u>>16&0xff)]/262144.0;
+      //testi=hf[(v>>8)+(u>>16)]/262144.0;
+      r=1-testi;
+
+
+      ax=suunta[0]*suunta[0];
+      bx=suunta[0]*posx;
+      cx=posx*posx-r*r;
+
+
+      t=(fsqrt(bx*bx-ax*cx)-bx)/ax;
+
+      px=posx+t*suunta[0];
+      py=posy+t*suunta[1];
+      pz=posz+t*suunta[2];
+
+      xypos=y*41+x;
+      qftolp(pieniz+xypos, (pz*128.0+128)*65536);
+      qftolp(pienix+xypos, (py*128.0+150)*65536);
+      //qftolp(varjot+xypos, 16*65536/(t*t));
+      //if (varjot[xypos]>250*65536) varjot[xypos]=250*65536;
+      //if (varjot[xypos]<65536) varjot[xypos]=65536;
+    }
+
+  for (x=0; x<256; x++) {
+    r=(x-(410-joops)/2.0)/50.0;
+    if (r<0) r=0; if (r>1) r=1;
+    uforajatbl[x]=(1-fcos(r*pi))*128;
+  }
+
+  //for (x=0; x<64000; x++) {
+    //i=(isox[x]<<8)+isoz[x];
+    //u=uforajatbl[hftmap[i]];
+    //v=tmap[i]*valo[x]>>7;
+    //dest[x]=rtbl[u+v];
+  //}
+
+  {
+    int p, q, *px, *qy, pa, pb, pc, pt, qa, qb, qc, qt, i;
+    ushort *a;
+    char *re;
+    int xx, yy;
+    char *d2, *dm;
+    int vx1, vy1, vx2, vy2;
+    vx1=32768+(-vx-posz)*32768;
+    vy1=32768+(-vy-posy)*32768;
+    vx2=32768+(-vx-posz)*16384;
+    vy2=32768+(-vy-posy)*16384;
+
+    for (y=0; y<25; y++) for (x=0; x<40; x++) {
+      px=pienix+y*41+x; qy=pieniz+y*41+x;
+      pt=px[0];
+      qt=qy[0];
+      pa=px[1]-pt>>3;
+      qa=qy[1]-qt>>3;
+      pb=px[41]-pt>>3;
+      qb=qy[41]-qt>>3;
+      pc=(px[42]-px[41]>>3)-pa>>3;
+      qc=(qy[42]-qy[41]>>3)-qa>>3;
+      d2=dest+(y*320+x)*8;
+      //if (pt>>8<-vx2+4096 || pt>>8>-vx2+61440 || qt>>8<-vy2+4096 || qt>>8>-vy2+61440) {
+        //if (pt>>9<-vx1+4096 || pt>>9>-vx1+61440 || qt>>9<-vy1+4096 || qt>>9>-vy1+61440) {
+          //for (yy=0; yy<8; yy++, d2+=312) for (xx=0; xx<8; xx++, *d2++=0) ;
+          //continue;
+        //}
+        for (yy=0; yy<8; yy++, pt+=pb, qt+=qb, pa+=pc, qa+=qc, d2+=312) {
+          for (p=pt, q=qt, dm=d2+8; d2<dm; p+=pa, q+=qa) {
+            i=(p>>8&0xff00)+(q>>16&0xff);
+            a=hf+i;
+            re=reiat+i;
+            *d2++=rtbl[envi3[(vx1+(p>>9)+(a[0]-a[256]<<1)   &0xff00)
+                           +(vy1+(q>>9)+(a[0]-a[  1]<<1)>>8&0x00ff)]
+                       +uforajatbl[*re]];
+          }
+        //}
+        //continue;
+      }
+    }
+  }
+}
+
+
+
+void teeufomappi(int joops) {
+  int x;
+
+  for (x=0; x<65536; x++)
+    ufojahf[x]=ufomap[x]*joops+(mappi2[x]<<5);
+}
+
+
+
+
+
+void plussprite(int x1, int y1, int x2, int y2, int leveys, int korkeus,
+                char *source, char *dest) {
+  int y, x1b, x2b, y1b, y2b, i, u16, u16_2, u16inc, v16, v16inc;
+  char *s2;
+  char *d2, *_d2, *d2m, *d2m2;
+
+  if (x1<0)       x1b=0;   else x1b=x1+255>>8;
+  if (x2>320*256) x2b=320; else x2b=x2+255>>8;
+  if (x1b>=x2b) return;
+  if (y1<0)       y1b=0;   else y1b=y1+255>>8;
+  if (y2>200*256) y2b=200; else y2b=y2+255>>8;
+  if (y1b>=y2b) return;
+  u16inc=16777216.0*leveys/(x2-x1);
+  u16_2=((x1b<<8)-x1)*u16inc>>8;
+  v16inc=16777216.0*korkeus/(y2-y1);
+  v16=((y1b<<8)-y1)*v16inc>>8;
+  _d2=dest+y1b*320;
+  for (y=y1b; y<y2b; y++) {
+    s2=source+(v16>>16)*leveys;
+    d2=_d2; d2m=d2+x2b; d2+=x1b; d2m2=d2m-4; u16=u16_2;
+    for (; d2<d2m2; d2+=4) {
+      i=d2[0]+s2[u16>>16]; if (i>255) d2[0]=255; else d2[0]=i;/*d2[0]=i|(i&256)-((i&256)>>8); */u16+=u16inc;
+      i=d2[1]+s2[u16>>16]; if (i>255) d2[1]=255; else d2[1]=i;/*d2[1]=i|(i&256)-((i&256)>>8); */u16+=u16inc;
+      i=d2[2]+s2[u16>>16]; if (i>255) d2[2]=255; else d2[2]=i;/*d2[2]=i|(i&256)-((i&256)>>8); */u16+=u16inc;
+      i=d2[3]+s2[u16>>16]; if (i>255) d2[3]=255; else d2[3]=i;/*d2[3]=i|(i&256)-((i&256)>>8); */u16+=u16inc;
+    }
+    for (; d2<d2m; d2++, u16+=u16inc) {
+      i=*d2+s2[u16>>16]; *d2=i|(i&256)-((i&256)>>8);
+      //if (i>255) *d2=255; else *d2=i;
+    }
+    v16+=v16inc; _d2+=320;
+  }
+}
+
+
+
+void teepistevektori(char *dest, int *datx, int *daty, int *datz, int dots2,
+                     float posx, float posy, float posz) {
+  float camera[3][3];
+  int uusix[256], uusiy[256], uusiz[256];
+  int x, y, z, i, x1, y1, x2, y2;
+  int px, py, pz;
+
+  px=posx*16384;
+  py=posy*16384;
+  pz=posz*16384;
+
+  teematriisi2(camera, 0-posx, 0-posy, 0-posz);
+
+  for (i=0; i<dots2; i++) {
+    uusix[i]=camera[0][0]*(datx[i]-px) + camera[0][1]*(daty[i]-py) + camera[0][2]*(datz[i]-pz);
+    uusiy[i]=camera[1][0]*(datx[i]-px) + camera[1][1]*(daty[i]-py) + camera[1][2]*(datz[i]-pz);
+    uusiz[i]=camera[2][0]*(datx[i]-px) + camera[2][1]*(daty[i]-py) + camera[2][2]*(datz[i]-pz);
+    uusiz[i]*=5.0;
+  }
+
+  for (i=0; i<dots2; i++) {
+    x=32768.0*4*uusix[i]/(uusiz[i]+0.001);
+    y=32768.0*4*uusiy[i]/(uusiz[i]+0.001);
+    z=32000/(uusiz[i]+0.001)*10000;
+
+    x1=x-z;
+    y1=y-z;
+    x2=x+z;
+    y2=y+z;
+    if (uusiz[i]>0) plussprite(x1+160*256 ,y1+100*256 ,x2+160*256, y2+100*256, 64, 64, valospr, dest);
+  }
+}
+
+
+
+void teevaloja1(char *dest, float posx, float posy, float posz, float time, int valoja) {
+  int data_x[valom], data_y[valom], data_z[valom];
+  int x;
+
+  for (x=0; x<valoja; x++) {
+    data_x[x]=valot_x[x]*fsin(time+univ_a[x]/256.0);
+    data_y[x]=valot_y[x]*fsin(time+univ_a[x]/256.0);
+    data_z[x]=valot_z[x]*fsin(time+univ_a[x]/256.0);
+  }
+  teepistevektori(dest, data_x, data_y, data_z, valoja, posx, posy, posz);
+}
+
+
+
+
+
+
+//////////////////////////////////////////////////// EFEKTIEN PY™RITTŽJŽT
+
+void laitask(char *sk, char *dest, int br) {
+  char *dmax=dest+64000;
+
+  if (br<10 && br>-10) return;
+  if (br<65546 && br>65526) for (; dest<dmax; sk+=4, dest+=4) {
+    dest[0]=rtbl[dest[0]+sk[0]]; dest[1]=rtbl[dest[1]+sk[1]];
+    dest[2]=rtbl[dest[2]+sk[2]]; dest[3]=rtbl[dest[3]+sk[3]];
+  } else for (; dest<dmax; sk+=4, dest+=4) {
+    dest[0]=rtbl[dest[0]+(sk[0]*br>>16)]; dest[1]=rtbl[dest[1]+(sk[1]*br>>16)];
+    dest[2]=rtbl[dest[2]+(sk[2]*br>>16)]; dest[3]=rtbl[dest[3]+(sk[3]*br>>16)];
+  }
+}
+
+
+void teelogot(float t) {
+  int x, y, c;
+
+  c=(int)(t*65536)&65535;
+  if (c<6144) c*=(65536/6144);
+  else c=(2-fcos((c-6144)*pi/6144*2))*2048+(65536-4096-(c-6144)*1.5);
+
+  if (((int)(t*65536)&65535)<8192) c+=(4096-((int)(t*65536)&4095))*8;
+  if (c<0) c=0; if (c>65536) c=65536;
+
+
+  fill32(dbuf2, 16000, 0);
+  teevaloja1(dbuf2, fsin(t*3.3)*1.5, fcos(t*3.7)*1.5, fsin(t*2.4)*1.5, t, valom);
+  teeradiaali(dbuf2, valotbl);
+  blur2(valotbl, 512, fpow(c/65536.0+0.001, 0.5)*32768+32767);
+  for (y=0; y<64000; y++) dbuf[y]=rtbl[tbla1[valotbl[tunneli[y]]>>8]];
+
+  //fill32(dbuf, 16000, 0);
+  if (t>=4 && t<5) for (x=0; x<32000; x++) dbuf[x+16000]=rtbl[dbuf[x+16000]+logo1[x]];
+  else             for (x=0; x<32000; x++) dbuf[x+16000]=rtbl[dbuf[x+16000]+logo2[x]];
+
+  teeharmaastavari(videomem, dbuf, hue, paletti1, c);
+  v_copy();
+}
+
+void flareeffu(float t) {
+  int y;
+
+  fill32(dbuf2, 16000, 0);
+  teevaloja1(dbuf2, fsin(t*3.1)*1.5, fcos(t*3.1)*1.5, fsin(t*4.21)*1.5, t, valom);
+
+  teeradiaali(dbuf2, valotbl);
+
+  //blur2(valotbl, 512, 65536-fexp(fsin(t*2.17)*1)*3000);
+  blur2(valotbl, 512, 48000);
+  //for (y=0; y<64000; y++) dbuf[y]=rtbl[(dbuf2[y]>>6)+(tbla1[valotbl[tunneli[y]]>>6])];
+  for (y=0; y<64000; y++) dbuf[y]=rtbl[tbla1[valotbl[tunneli[y]]>>6]];
+
+  teeharmaastavari(videomem, dbuf, hue, paletti1, 65536);
+
+  v_copy();
+
+}
+
+
+
+void alkupaskat(float t) {
+  int x, y, c;
+  char *sp;
+  char *dest=dbuf+110;
+
+  c=(int)(t*65536)&65535;
+  if (c<6144) c*=(65536/6144);
+  else c=(2-fcos((c-6144)*pi/6144*2))*2048+(65536-4096-(c-6144)*1.5);
+  if (c<0) c=0; if (c>65536) c=65536;
+
+  fill32(dbuf2, 16000, 0);
+  teevaloja1(dbuf2, fsin(t*1.5)*1.5, fcos(t*1.2)*1.5, fsin(t*0.55)*1.5, t, valom);
+  teeradiaali(dbuf2, valotbl);
+  blur2(valotbl, 512, fpow(c/65536.0+0.001, 0.5)*32768+32767);
+  for (y=0; y<64000; y++) dbuf[y]=rtbl[tbla1[valotbl[tunneli[y]]>>8]];
+
+  if (t<1) sp=sp2+19999;
+  if (t>=1 && t<2) sp=sp5+19999;
+  if (t>=2 && t<3) sp=sp4+19999;
+  if (t>=3 && t<4) sp=sp6+19999;
+
+  for (y=0; y<200; y++, dest+=220) for (x=0; x<100; x++, sp--, dest++) {
+    *dest=rtbl[*dest+*sp];
+  }
+  teeharmaastavari(videomem, dbuf, hue, paletti1, c);
+  v_copy();
+}
+
+
+void testikakka(float t) {
+  int joo, x, y;
+  char *sp;
+  char *dest=dbuf+110;
+
+  fill32(dbuf, 16000, 0);
+
+  joo=(int)(t*16)%6;
+  if (joo==0) sp=sp1;
+  if (joo==1) sp=sp2;
+  if (joo==2) sp=sp3;
+  if (joo==3) sp=sp4;
+  if (joo==4) sp=sp5;
+  if (joo==5) sp=sp6;
+
+  for (y=0; y<200; y++, dest+=220) for (x=0; x<100; x++, sp++, dest++) {
+    *dest=*sp;
+  }
+
+  teeharmaastavari(videomem, dbuf, hue, paletti1, 65536);
+  v_copy();
+
+}
+
+void valopallo(float t) {
+  float r, rot;
+  int x, y;
+  int pos, joo;
+
+  pos=(int)(t*65536)&32767;
+  if (pos<4096) { joo=pos; rot=pos/16384.0; }
+  if (pos>=4096 && pos<20480) { joo=pos-4096; rot=-(pos-4096)/16384.0; }
+  if (pos>=20480) { joo=pos-20480; rot=(pos-20480)/16384.0; }
+  rot+=t;
+  r=fsin(t)*1.0+3.0;
+  rantapallo(dbuf2, fsin(rot)*r, fcos(rot)*r, fsin(t*4.0), 0, 0, 0);
+  teeradiaali(dbuf2 , valotbl);
+
+  blur2(valotbl, 512, 63000);
+  for (x=0; x<64000; x++) dbuf[x]=rtbl[(dbuf2[x]>>2)+(tbla1[valotbl[tunneli[x]]>>6])];
+
+  //laitask(skuva1, dbuf, 65536-joo*2);
+  teeharmaastavari(videomem, dbuf, hue, paletti1, 65536);
+  v_copy();
+}
+
+void sumupallo(float t) {
+  float r, rot;
+  int x, y;
+  int pos, joo;
+
+  pos=(int)(t*65536)&32767;
+  if (t<11.5) {
+    if (pos<4096) { joo=pos; r=pos/16384.0; rot=r; }
+    if (pos>=4096 && pos<20480) { joo=pos-4096; r=(pos-4096)/16384.0; rot=-r; }
+    if (pos>=20480) { joo=pos-20480; r=(pos-20480)/16384.0; rot=r; }
+  } else {
+    if (pos<4096) { joo=pos; r=pos/16384.0; rot=r; }
+    if (pos>=4096) { joo=pos-4096; r=(pos-4096)/16384.0; rot=-r; }
+  }
+  r+=2.0;
+
+  rantapallo(dbuf2, fsin(2.43)*r, fcos(t*2.43)*r, (10.5-t), 0, 0, 0);
+
+  teeradiaali(dbuf2 ,valotbl);
+  blur2(valotbl, 511, 55000);
+  blur2(valotbl, 513, 55000);
+  for (x=0; x<64000; x++) dbuf[x]=rtbl[(dbuf2[x]>>3)+(tbla1[valotbl[tunneli[x]]>>6])];
+
+  laitask(skuva3, dbuf, 65536-joo*2);
+
+  teeharmaastavari2(videomem, dbuf, skuva3, paletti1, 65536);
+  v_copy();
+}
+
+
+void sudan(float t, object *opu) {
+  float xp, yp, a;
+  int x, y, i;
+  int pos, joo;
+  float sais;
+
+  sais=1;
+  if (t<25) sais=(t-24)*4;
+  if (t>29) sais=(1-(t-29))*4;
+  if (sais>1) sais=1;
+
+  pos=(int)(t*65536)&32767;
+  if (pos<4096) joo=pos;
+  if (pos>=4096 && pos<20480) joo=pos-4096;
+  if (pos>=20480) joo=pos-20480;
+
+  a=fsin(t*2.5)*pi/4;
+  xp=fcos(a+pi/2)*2.50;
+  yp=fsin(a+pi/2)*2.50;
+
+  fill32(dbuf, 16000, 0);
+  fill32(zbuf, 32000, 0);
+  teepallo(opu, t*12, sais);
+  laskevektorinormaalit(opu);
+  rotateobject(opu, t*2.63, t*1.74, t*3.03, 0, 0, -0.75);
+  latex2(opu, xp, yp, 0, fsin(t*4.12)*0.5, fsin(t*2.58)*0.5, 0, 1);
+  taeyttaejae(dbuf, opu);
+  if ((pos&16383)>=6144 && (pos&16383)<10240) teedotit(dbuf, opu);
+
+  teeblurri(dbuf);
+
+  laitask(skuva5, dbuf, 65536-joo*2);
+  teeharmaastavari2(videomem, dbuf, skuva5, paletti1, 65536);
+  //for (i=0; i<64000; i++) videomem[i]=ppal[dbuf[i]];
+
+  v_copy();
+}
+
+void tunnelikakka(float t, object *opu) {
+  float xp, yp, zp, tpos;
+  float v_scale=5.0;
+  int x, y, i;
+  int pos, joo;
+
+  tpos=(13-t)*3; if (tpos<0) tpos=0; else tpos*=tpos;
+  xp=fsin(t*3.33)*0.40;
+  yp=fcos(t*3.33)*0.40;
+  zp=fcos(t*1.11)*1.00+tpos;
+
+  pos=(int)(t*65536)&32767;
+  if (pos<4096) joo=pos;
+  if (pos>=4096 && pos<20480) joo=pos-4096;
+  if (pos>=20480) joo=pos-20480;
+
+  teetunneli3(dbuf, hfield2, xp, yp, zp);
+
+  //fill32(dbuf, 16000, 0);
+  fill32(zbuf, 32000, 0);
+  teepallo2(opu, t*4);
+  rotateobject(opu, 0, 0, 0, 0, 0, 0);
+  latex2(opu, -xp*v_scale, -yp*v_scale, zp*v_scale, 0, 0, 0, 1);
+  taeyttaejae(dbuf, opu);
+  teeblurri(dbuf);
+
+  laitask(skuva6, dbuf, 65536-joo*2);
+  //for (i=0; i<64000; i++) videomem[i]=ppal[rtbl[dbuf[i]+dbuf2[i]>>1]];
+  teeharmaastavari2(videomem, dbuf, skuva6, paletti1, 65536);
+
+  v_copy();
+
+}
+
+void vesitaso(float t) {
+  int x, y, i;
+  int pos, joo;
+
+  pos=(int)(t*65536)&32767;
+  if (pos<4096) joo=pos;
+  if (pos>=4096 && pos<20480) joo=pos-4096;
+  if (pos>=20480) joo=pos-20480;
+  fill32(dbuf, 16000, 0);
+  laitask(skuva2, dbuf, 65536-joo*2);
+  teeharmaastavari2(videomem, dbuf, skuva2, paletti1, 65536);
+
+  v_copy();
+
+}
+
+void ufotaso(float t) {
+  int x, y, i;
+  int pos, joo;
+  float joops;
+
+  pos=(int)(t*65536)&32767;
+  if (pos<4096) joo=pos;
+  if (pos>=4096 && pos<20480) joo=pos-4096;
+  if (pos>=20480) joo=pos-20480;
+
+  joops=(t-30)*pi-pi/2;
+  teeufomappi(fsin(joops)*100+100);
+  teeufotaso(dbuf2, ufojahf, uforeika, (fsin(joops)+1)*((t-22)*8.0),
+             fsin(t*0.7)*0.1+0.3, fsin(t*1.2)*0.1, fsin(t*2.16)*0.1,
+             fsin(t*0.2)*0.1+0.7, fsin(t*1.6)*0.1+0.5);
+  teeradiaali2(dbuf2 , valotbl);
+
+  blur2(valotbl, 512, 60000);
+  for (x=0; x<64000; x++) dbuf[x]=rtbl[(dbuf2[x]>>1)+(tblb1[valotbl[tunneli[x]]>>6])];
+
+  if (t<34) laitask(skuva1, dbuf, 65536-((int)(t*65536)&65535));
+  else laitask(skuva1, dbuf, 65536-joo*2);
+  teeharmaastavari2(videomem, dbuf, skuva1, paletti1, 65536);
+
+  v_copy();
+
+}
+
+void piikkipallero(float t, object *opu) {
+  int y, i;
+  int pos, joo;
+  float xp, yp, zp;
+  float v_scale=5.0;
+
+  pos=(int)(t*65536)&32767;
+  if (pos<4096) joo=pos;
+  if (pos>=4096 && pos<20480) joo=pos-4096;
+  if (pos>=20480) joo=pos-20480;
+
+  //xp=fcos(t*3.32)*0.50;
+  //yp=fsin(t*3.32)*0.50;
+  xp=0;
+  yp=0;
+  zp=0.6+fsin(t*3.2)*0.1+fcos(t*2.7)*0.1;
+
+  //fill32(dbuf, 16000, 0);
+  fill32(zbuf, 32000, 0);
+  rotateobject(opu, t*3.1, t*1.5, t*1.9, 0, 0.75, 0);
+  latex2(opu, -xp*v_scale, -yp*v_scale, zp*v_scale, fsin(t*7.12)*0.5, fsin(t*4.58)*0.5, joo/16384.0, 1);
+  taeyttaejae(dbuf, opu);
+    //teeblurri(dbuf3);
+  teelaaser(dbuf, zbuf);
+
+
+  laitask(skuva4, dbuf, 65536-joo*2);
+  teeharmaastavari2(videomem, dbuf, skuva4, paletti1, 65536);
+
+  v_copy();
+
+}
+
+
+//////////////////////////////////////////////////// LE MAIN LOOP
+
+
+void main() {
+  int port, mode;
+  int x, y, u, v, i, c1, c2, c3;
+  float t;
+  static char paskaa[16*1024*1024];
+  static object obu, obu2, obu3;
+  Material *m1, *m2;
+
+  //float xp, yp, zp;
+
+
+  hinit(paskaa, sizeof(paskaa));
+  dosputs("\033[2J$");
+  dosputs("\033[33m$");
+  dosputs("--------------------------------------\r\n$");
+  dosputs("Viagra by Mewlers         a 64kb intro\r\n$");
+  dosputs("--------------------------------------\r\n$");
+  dosputs("Where is your GUS [2x0]? (enter=quiet)\r\n$");
+  dosputs("--------------------------------------\r\n$");
+  for (port=0x1234; port==0x1234; ) {
+    switch (tiny_inkey()) {
+      case '0': port=0x200; break;
+      case '1': port=0x210; break;
+      case '2': port=0x220; break;
+      case '3': port=0x230; break;
+      case '4': port=0x240; break;
+      case '5': port=0x250; break;
+      case '6': port=0x260; break;
+      case '7': port=0x270; break;
+      case 13: port=0; break;
+    }
+  }
+  xmpInit(mjuzic+16384, port|0x80000000, mjuzic, 65536);
+
+  dosputs("Where is your monitor? (enter=1) \r\n\n$");
+  dosputs("1. 16bpp (use this if possible) \r\n$");
+  dosputs("2. 16bpp (secondary option, slow) \r\n$");
+  dosputs("3. 8bpp (with vga default palette) \r\n$");
+  dosputs("--------------------------------------\r\n$");
+  mode=tiny_inkey();
+  if      (mode=='1') mode=3;
+  else if (mode=='2') mode=42;
+  else if (mode=='3') mode=13;
+  else mode=3;
+  dosputs("Precalculating...$");
+
+  for (x=0; x<8192; x++) rtbl2[x]=0;
+  for (x=8192; x<8192+256; x++) rtbl2[x]=x-8192;
+  for (x=8192+256; x<16384; x++) rtbl2[x]=255;
+
+  unpak1(sp, sp1, 0, 16000);
+  unpak1(sp, sp2, 1, 16000);
+  unpak1(sp, sp3, 2, 16000);
+  unpak1(sp, sp4, 3, 16000);
+  unpak1(sp, sp5, 4, 16000);
+  unpak1(sp, sp6, 5, 16000);
+  unpak1(sp, logo1, 6, 16000);
+  unpak1(sp, logo2, 7, 16000);
+  dosputs(".$");
+  teesk1();
+  teesk2();
+  dosputs(".$");
+  teesk3();
+  teesk4();
+  dosputs(".$");
+  teesk5();
+  teesk6();
+  dosputs(".$");
+  precalcipaskaa();
+  prekalknewshit();
+  dosputs(".$");
+  kasittelelogo(logo1);
+  kasittelelogo(logo2);
+  dosputs(".$");
+  kasittelesp(sp1);
+  kasittelesp(sp2);
+  kasittelesp(sp3);
+  kasittelesp(sp4);
+  kasittelesp(sp5);
+  kasittelesp(sp6);
+  dosputs(".$");
+
+  for (i=0; i<1024; i++) {
+    float f=i/128.0; f=f<1?f:1; f=fsqrt(f);
+    tbla1[i]=fpow(i/1024.0+0.0001, fpow( 0.30,f+0.0001))*512.0;
+    tblb1[i]=fpow(i/1024.0+0.0001, fpow( 0.20,f+0.0001))*512.0;
+  }
+
+  for (i=0; i<256; i++) {
+    float f=i/128.0; f=f<1?f:1; f=fsqrt(f);
+    tbla2[i]=fpow(i/256.0 +0.0001, fpow( 4.00,f+0.0001))*16384.0;
+    tblb2[i]=fpow(i/256.0 +0.0001, fpow( 5.00,f+0.0001))*16384.0;
+  }
+
+  domap(smalsper, sperikal, 2);
+  for (x=0; x<65536; x++) {
+    i=sperikal[x]; i=i-128; if (i<0) i=-i; i=128-i<<1;
+    if (i>250) i=250;
+    sperikal2[x]=i;
+  }
+  //for (i=0; i<65536; i++) sperikal[i]=rtbl[(int)(sperikal[i]*0.5+127)];
+
+  dosputs(".$");
+  prekalkutsjon();
+  dosputs(".$");
+  precalculatemappi();
+  dosputs(".$");
+
+  if ((m1=lataatexture(mappi3, 256, 256, 1, 0, 1))==0) { v_close(); exit(); }
+  if ((m2=lataatexture(sperikal, 256, 256, 1, 0, 1))==0) { v_close(); exit(); }
+
+  create_pallo(&obu, m1);
+  create_pallo2(&obu2, m2);
+  create_pallo2(&obu3, m1);
+  teepiikkipallo(&obu3, 0);
+  laskevektorinormaalit(&obu3);
+
+  for (x=0; x<256; x++) {
+    c1=x/4;       if (c1<0) c1=0; if (c1>31) c1=31;
+    c2=(x-128)/2; if (c2<0) c2=0; if (c2>63) c2=31;
+    c3=(x-128)/4; if (c3<0) c3=0; if (c3>31) c3=31;
+    ppal[x]=(c1<<11)+(c2<<5)+c3;
+    c1=(x-128)/4; if (c1<0) c1=0; if (c1>31) c1=31;
+    c2=(x-128)/2; if (c2<0) c2=0; if (c2>63) c2=31;
+    c3=x/4;       if (c3<0) c3=0; if (c3>31) c3=31;
+    spal[x]=(c1<<11)+(c2<<5)+c3;
+  }
+  dosputs(".$");
+
+  for (y=0; y<256; y++) for (x=0; x<256; x++) {
+    hfield2[y*256+x]=((fsin(fsin(pi*(x+y)/128)+
+                     pi*(x-y)/128)*2.0)-
+                     fsin(pi*(x-y)/128)*2.0)*2048.0+
+                     (mappi2[y*256+x]-128)*4;
+  }
+
+  domap(kohokuva, ufomap, 2);
+  for (x=0; x<65536; x++) uforeika[x]=ufomap[x]*mappi2[32768-x&65535]>>8;
+  for (y=0; y<256; y++) for (x=0; x<256; x++) {
+    u=x-128;
+    v=y-128;
+    envi3[y*256+x]=rtbl[128-(int)(fsqrt(u*u+v*v)*2.0)];
+  }
+
+  dosputs(".$");
+
+  //dosputs("rekalk reti$");
+  //for (x=0; x<100000000; x++) ;
+
+
+  v_open(mode);
+  oldk=get_intr(0x9);
+  set_intr(0x9, newk);
+
+
+  xmpPlay(0);
+
+  while (!kcnt[1]) {
+    videomem=v_getlfb();
+    t=musatimer()/64.0;
+
+    //flareeffu(t);
+
+    if (t<4) alkupaskat(t);
+    if (t>=4 && t<6) teelogot(t);
+    if (t>=6 && t<12) sumupallo(t);
+    if (t>=12 && t<18) tunnelikakka(t, &obu2);
+    if (t>=18 && t<24) vesitaso(t);
+    if (t>=24 && t<30) sudan(t, &obu);
+    if (t>=30 && t<40) ufotaso(t);
+    if (t>=40 && t<48) piikkipallero(t, &obu3);
+    if (t>=48) valopallo(t);
+
+    //teeharmaastavari(videomem, skuva1, hue, paletti1, 65536);
+    //v_copy();
+
+    while (kcnt[129]&1) ;
+    if (kcnt[0x4e]) { mdata->jumptoord=mdata->curord+1; kcnt[0x4e]=0; }
+  }
+
+  set_intr(0x9, oldk);
+  xmpStop();
+  v_close();
+  dosputs("\033[37mNow it's safe to turn off your computer.\r\n$");
+}

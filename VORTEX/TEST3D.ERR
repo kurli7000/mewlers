@@ -1,0 +1,6 @@
+enkine.h(10): Error! E1034: Symbol 'vector' already defined
+enkine.h(21): Error! E1034: Symbol 'vertex' already defined
+enkine.h(25): Error! E1034: Symbol 'face' already defined
+enkine.h(31): Error! E1034: Symbol 'alkup' already defined
+enkine.h(37): Error! E1034: Symbol 'loppup' already defined
+enkine.h(46): Error! E1147: Too many errors: compilation aborted

@@ -1,0 +1,1349 @@
+typedef unsigned short ushort;
+
+#include "vid.h"
+#include "mxmplay2.h"
+#include "tinymath.h"
+#include "tinyheap.h"
+#include "tinyfile.h"
+
+
+#define valom 128
+int cur_valom;
+#define pi 3.1415936536
+//char *videomem=(char*)0xa0000;
+ushort *videomem;
+
+extern char logo1[64000];
+extern char logo2[64000];
+extern char sprite[50*80];
+extern char lehma[160*120];
+
+extern char mjuzic[100000];
+Xmpgds *mdata=(Xmpgds*)mjuzic;
+
+ushort paletti1[16384], paletti2[16384], paletti3[16384], paletti4[16384];
+char plasma1[64000], plasma2[64000];
+char mappi2[65536], valospr[32*32];
+char dbuf[64000], dbuf2[64000];
+char isox[64000], isoz[64000], valo[64000];
+int pienix[81*51], pieniz[81*51], varjot[81*51];
+int valot_x[valom], valot_y[valom], valot_z[valom], univ_a[valom];
+int randtaul[80*50];
+short hfield1[65536], sint1[256], sint2[256], sint3[256];
+//char sprite[80*50];
+
+void mode(int);
+#pragma aux mode="int 0x10" parm[eax] modify[edx];
+void move32(void *zourke, void *dezt, int kount);
+#pragma aux move32= "cld" "rep movsd" parm[esi][edi][ecx];
+void fill32(void *dezt, int kount, int num);
+#pragma aux fill32= "cld" "rep stosd" parm[edi][ecx][eax];
+void ulos(int port, char data);
+#pragma aux ulos= "out dx, al" parm[edx][al];
+char sisaan(int port);
+#pragma aux sisaan= "in al, dx" parm[edx][al] value[al];
+//float fabs(float a) { return a>0?a:-a; }
+int hm(int k) { return k<255?k:255; }
+int hmx(int k) { return k<255?(k>0?k:0):255; }
+int hm2(int k) { return k<63?k:63; }
+int hm3(int k) { return k<127?k:127; }
+int seed=3242342, seed2=8754567, seed3=1231231;
+int rand() {
+  seed=seed*(765342345+seed3--)+78761567+seed2++;
+  return seed>>8&0x7fff;
+}
+/*float floor(float f) {
+  return (int)f;
+} */
+float fabs(float a);
+#pragma aux fabs= "fabs" parm [8087] value [8087];
+static long qftoltemp;
+long qftol(float);
+#pragma aux qftol = "fistp dword ptr[qftoltemp]" \
+                    "mov eax, dword ptr[qftoltemp]" parm [8087] value [eax];
+void qftolp(int*, float);
+#pragma aux qftolp = "fistp dword ptr[eax]" parm [eax][8087];
+void dosputs(char *stringi);
+#pragma aux dosputs=\
+  "mov ah,9"        \
+  "int 21h"         \
+  parm [edx] modify [eax ebx ecx edx esi edi];
+
+
+
+float musatimer() {
+  return ((mdata->curord*64+mdata->currow)+(mdata->curtick
+    +(xmpGetTimer()-mdata->maxtimerrate)/(float)(mdata->stimerlen))/mdata->curtempo);
+}
+
+void ulos(int port, char data);
+#pragma aux ulos= "out dx, al" parm[edx][al];
+char sisaan(int port);
+#pragma aux sisaan= "in al,dx" parm[edx][al] value[al];
+
+
+void precalculatemappi() {
+  int x, y, i, j;
+  float u, v;
+
+  for (y=0; y<256; y++) for (x=0; x<256; x++) mappi2[(y<<8)+x]=rand();
+  dosputs(".$");
+  for (i=0; i<32; i++) { // laskettu mappi
+    for (y=0; y<256; y++) for (x=0; x<256; x++) {
+      mappi2[(y<<8)+x]=(mappi2[(y<<8)+x]+mappi2[(y+1<<8&0xff00)+(x+1&0xff)]
+                       +mappi2[(y<<8)+(x+1&0xff)]+mappi2[(y+1<<8&0xff00)+x])/4;
+    }
+  }
+  dosputs(".$");
+/*
+  for (y=0; y<128; y++) for (x=0; x<128; x++) {  // piirretty mappi
+    i=x*2;
+    j=y*2;
+    mappi[j*256+i    ]=acidmap[y*128+x]*2+1;
+    mappi[j*256+i+1  ]=(acidmap[y*128+x]+acidmap[y*128+(x+1)%128])+1;
+    mappi[j*256+i+256]=(acidmap[y*128+x]+acidmap[(y+1)%128*128+x])+1;
+    mappi[j*256+i+257]=(acidmap[y*128+x]+acidmap[y*128+(x+1)%128]+
+                        acidmap[(y+1)%128*128+x]+acidmap[(y+1)%128*128+(x+1)%128])/2+1;
+  }
+  dosputs(".$"); */
+
+  for (y=0; y<32; y++) for (x=0; x<32; x++) {  // valosprite
+    u=x-15.99;
+    v=y-15.99;
+    i=2048/(u*u+v*v)-6;
+    if (i<0) i=0; if (i>255) i=255;
+    valospr[y*32+x]=i;
+  }
+  dosputs(".$");
+
+
+  for (y=0; y<256; y++) for (x=0; x<256; x++) {
+    hfield1[y*256+x]=(fsin(pi*y/128.0)+fcos(pi*x/64.0))*2048.0;
+//    hfield2[y*256+x]=((fsin(fsin(pi*(x+y)/128)+pi*(x-y)/128)*2.0)-fsin(pi*(x-y)/128)*2.0)*2048.0+(mappi2[y*256+x]-128)*4;
+  }
+  dosputs(".$");
+
+/*
+  for (x=0; x<64000; x++) {
+    logo1[x]=logo1[x]<<2;
+    logo2[x]=logo2[x]<<2;
+  }
+  dosputs(".$");
+*/
+}
+
+
+void precalculoitcpaska() {
+  int x,y,r,g,b,rr,gg,bb;
+  int joo,i;
+  float u, v, f;
+
+  for (y=0; y<200; y++) for (x=0; x<320; x++) {
+    joo=(x-160)*(x-160)+(y-100)*(y-100);
+    plasma1[y*320+x]=(fsin(joo/6400.0)+fsin(x/24.0)+fcos(joo/4800.0)+fsin(fsin(x/16.0)+y/32.0)+4)*8;
+    plasma2[y*320+x]=(fsin(y/22.0+fsin(joo/4000.0))+fsin((joo-y*x)/6000.0)+2)*16;
+  }
+  dosputs(".$");
+/*
+  for (y=0; y<64; y++) {
+    rr=(fsin(y/16.0+0*pi/3)+1)*1024;
+    gg=(fsin(y/16.0+2*pi/3)+1)*1024;
+    bb=(fsin(y/16.0+4*pi/3)+1)*1024;
+    for (x=0; x<256; x++) {
+      r=rr*(x)>>9; g=gg*(x)>>9; b=bb*(x)>>9;
+      paletti1[y*256+x]=(hmx(r)>>3<<11)+(hmx(g)>>2<<5)+(hmx(b)>>3);
+    }
+  }
+  dosputs(".$"); */
+
+  for (y=0; y<64; y++) {
+    rr=800+y/64.0*200;
+    gg=800;
+    bb=600;
+    for (x=0; x<256; x++) {
+      r=rr*x>>9; g=gg*x>>9; b=bb*x>>9;
+      paletti1[y*256+x]=(hmx(r)>>3<<11)+(hmx(g)>>2<<5)+(hmx(b)>>3);
+    }
+  }
+  dosputs(".$");
+
+  for (y=0; y<64; y++) {
+    rr=600;
+    gg=800;
+    bb=800+y/64.0*200;
+    for (x=0; x<256; x++) {
+      r=rr*x>>9; g=gg*x>>9; b=bb*x>>9;
+      paletti2[y*256+x]=(hmx(r)>>3<<11)+(hmx(g)>>2<<5)+(hmx(b)>>3);
+    }
+  }
+  dosputs(".$");
+
+  for (y=0; y<64; y++) {
+    rr=1000-y/64.0*200;
+    gg=700+y/64.0*300;
+    bb=200+y/64.0*800;
+    for (x=0; x<256; x++) {
+      r=rr*x>>9; g=gg*x>>9; b=bb*x>>9;
+      paletti3[y*256+x]=(hmx(r)>>3<<11)+(hmx(g)>>2<<5)+(hmx(b)>>3);
+    }
+  }
+  dosputs(".$");
+
+
+}
+
+void precalcshit() {
+  int x,y;
+
+  for (x=0; x<valom; x++) univ_a[x]=rand();
+  for (x=0; x<valom; x++){
+    valot_x[x]=(rand()-16384)/1.4;
+    valot_y[x]=(rand()-16384)/1.4;
+    valot_z[x]=(rand()-16384)/1.4;
+  }
+
+  for (x=0; x<256; x++) {
+    sint1[x]=(fsin(x*pi/256)+fsin(x*pi/128))*64;
+    sint2[x]=(fcos(x*pi/128)-fsin(x*pi/256))*64;
+    sint3[x]=(fcos(x*pi/64)+fcos(x*pi/128))*64;
+  }
+
+  for (y=0; y<120; y++) for (x=0; x<160; x++) {
+    lehma[y*160+x]*=8;
+  }
+
+  for (x=0; x<80*50; x++) randtaul[x]=rand()-16384;
+
+  dosputs(".$");
+
+}
+
+void kasittelelogo(char *desti) {
+  int i, j, k;
+  static int temp[64000], temp2[64000];
+
+  for (i=0; i<64000; i++) temp[i]=desti[i]*8;
+
+  for (i=0; i<10; i++) {
+    for (j=10*320; j<190*320; j++) {
+      temp2[j]=temp[j-320]+temp[j-1]+temp[j+1]+temp[j+320]
+              +temp[j-962]+temp[j-637]+temp[j+637]+temp[j+962]+4>>3;
+    }
+    for (j=10*320; j<190*320; j++) {
+      temp[j]=temp2[j-320]+temp2[j-1]+temp2[j+1]+temp2[j+320]
+             +temp2[j-962]+temp2[j-637]+temp2[j+637]+temp2[j+962]+4>>3;
+    }
+    dosputs(".$");
+  }
+
+  for (i=0; i<64000; i++) {
+    k=(desti[i]*1.3)+(temp[i]*0.5);
+    if (k>127) k=127;
+    desti[i]=k;
+  }
+  dosputs(".$");
+}
+
+
+
+
+void teeharmaastavari(ushort *dest, char *src, char *plasma, ushort *paletti, int br) {
+  ushort *dmax=dest+64000;
+  if(br==65536) for (; dest<dmax; dest++, src++, plasma++) *dest=paletti[*src+(*plasma<<8)];
+  else for (; dest<dmax; dest++, src++, plasma++) *dest=paletti[(*src*br>>16)+(*plasma<<8)];
+}
+
+
+void interpoloi2(int *sourke, char *dest) {
+  int c, d, aa, x, y;
+  char *dest2, *destm;
+  int *s;
+
+  c=c; d=d; aa=aa;
+  s=sourke;
+  for (y=0; y<25; y++, s++) {
+    dest2=dest+y*8*320;
+    for (x=0; x<40; x++, s++, dest2+=8) {
+      destm=dest2+8*(320-8);
+      _asm {
+        mov eax, s
+        mov edi, dest2
+        mov ebx, [eax+4]
+        mov esi, [eax+0]
+        mov aa, ebx
+        mov ecx, [eax+168]
+        mov edx, [eax+164]
+        sub esi, ebx
+        sub edx, ecx
+        sub ecx, ebx
+        add esi, 0x800000
+        add edx, 0x800000
+        and esi, 0xffffff
+        and edx, 0xffffff
+        sub edx, 0x800000
+        sar edx, 3
+        sub esi, 0x800000
+        sar esi, 3
+        add ecx, 0x800000
+        and ecx, 0xffffff
+        sub edx, esi
+        sar edx, 3
+        sub ecx, 0x800000
+        sar ecx, 3
+        mov d, edx
+        mov c, ecx
+
+        innerluuppi:
+          mov ecx, ebx
+          add ebx, esi
+          shr ecx, 16
+          mov edx, ebx
+          shr edx, 16
+          mov ah, cl
+          mov al, dl
+          add ebx, esi
+          shl eax, 16
+          mov ecx, ebx
+          shr ecx, 16
+          add ebx, esi
+          mov ah, cl
+          mov edx, ebx
+          shr edx, 16
+          add ebx, esi
+          mov al, dl
+          mov ecx, ebx
+          shr ecx, 16
+          mov [edi+4], eax
+          mov ah, cl
+          add ebx, esi
+          mov edx, ebx
+          add ebx, esi
+          shr edx, 16
+          mov al, dl
+          shl eax, 16
+          mov ecx, ebx
+          shr ecx, 16
+          add ebx, esi
+          mov ah, cl
+          mov edx, ebx
+          shr edx, 16
+          mov al, dl
+          mov [edi], eax
+
+          add edi, 320
+          mov ebx, aa
+          add ebx, c
+          mov aa, ebx
+          add esi, d
+          cmp edi, destm
+        jb innerluuppi
+      }
+    }
+  }
+}
+void interpoloi3(int *sourke, char *dest) {
+  int c, d, aa, x, y;
+  char *dest2, *destm;
+  int *s;
+
+  c=c; d=d; aa=aa;
+  s=sourke;
+  for (y=0; y<25; y++, s++) {
+    dest2=dest+y*8*320;
+    for (x=0; x<40; x++, s++, dest2+=8) {
+      destm=dest2+8*(320-8);
+      _asm {
+        mov eax, s
+        mov edi, dest2
+        mov ebx, [eax+4]
+        mov esi, [eax+0]
+        mov aa, ebx
+        mov ecx, [eax+168]
+        mov edx, [eax+164]
+        sub esi, ebx
+        sub edx, ecx
+        sub ecx, ebx
+        ;add esi, 0x800000
+        ;add edx, 0x800000
+        ;and esi, 0xffffff
+        ;and edx, 0xffffff
+        ;sub edx, 0x800000
+        sar edx, 3
+        ;sub esi, 0x800000
+        sar esi, 3
+        ;add ecx, 0x800000
+        ;and ecx, 0xffffff
+        sub edx, esi
+        sar edx, 3
+        ;sub ecx, 0x800000
+        sar ecx, 3
+        mov d, edx
+        mov c, ecx
+
+        innerluuppi:
+          mov ecx, ebx
+          add ebx, esi
+          shr ecx, 16
+          mov edx, ebx
+          shr edx, 16
+          mov ah, cl
+          mov al, dl
+          add ebx, esi
+          shl eax, 16
+          mov ecx, ebx
+          shr ecx, 16
+          add ebx, esi
+          mov ah, cl
+          mov edx, ebx
+          shr edx, 16
+          add ebx, esi
+          mov al, dl
+          mov ecx, ebx
+          shr ecx, 16
+          mov [edi+4], eax
+          mov ah, cl
+          add ebx, esi
+          mov edx, ebx
+          add ebx, esi
+          shr edx, 16
+          mov al, dl
+          shl eax, 16
+          mov ecx, ebx
+          shr ecx, 16
+          add ebx, esi
+          mov ah, cl
+          mov edx, ebx
+          shr edx, 16
+          mov al, dl
+          mov [edi], eax
+
+          add edi, 320
+          mov ebx, aa
+          add ebx, c
+          mov aa, ebx
+          add esi, d
+          cmp edi, destm
+        jb innerluuppi
+      }
+    }
+  }
+}
+
+/*
+
+
+void bezier2(int *sd) {
+  int x, y;
+  int *z;
+
+  for (y=0; y<51; y+=2) {
+    z=sd+y*81+1;
+    *z=z[-1]+z[1]>>1; z+=2;
+    for (x=3; x<79; x+=2, z+=2) *z=(z[-1]+z[1])*5-(z[-3]+z[3])>>3;
+    *z=z[-1]+z[1]>>1;
+  }
+  for (y=1; y<51; y+=2) {
+    z=sd+y*81;
+    if (y==1||y==49)
+      for (x=0; x<81; x++, z++) *z=z[-81]+z[81]>>1;
+    else
+      for (x=0; x<81; x++, z++) *z=(z[-81]+z[81])*5-(z[-243]+z[243])>>3;
+  }
+}
+void bezier3(int *sd) {
+  int x, y;
+  int *z;
+
+  for (y=0; y<51; y+=2) {
+    z=sd+y*81+1;
+    *z=z[-1]+z[1]>>1; if (*z<16384) *z=16384; z+=2;
+    for (x=3; x<79; x+=2, z+=2) { *z=(z[-1]+z[1])*5-(z[-3]+z[3])>>3; if (*z<16384) *z=16384; }
+    *z=z[-1]+z[1]>>1; if (*z<16384) *z=16384;
+  }
+  for (y=1; y<51; y+=2) {
+    z=sd+y*81;
+    if (y==1||y==49)
+      for (x=0; x<81; x++, z++) { *z=z[-81]+z[81]>>1; if (*z<16384) *z=16384; }
+    else
+      for (x=0; x<81; x++, z++) { *z=(z[-81]+z[81])*5-(z[-243]+z[243])>>3; if (*z<16384) *z=16384; }
+  }
+}
+void interpoloi2b(int *sourke, char *dest) {
+  int c, d, aa, x, y;
+  char *dest2, *destm;
+  int *s;
+
+  bezier2(sourke);
+  c=c; d=d; aa=aa;
+  s=sourke;
+  for (y=0; y<50; y++, s++) {
+    dest2=dest+y*4*320;
+    for (x=0; x<80; x++, s++, dest2+=4) {
+      destm=dest2+4*320;
+      _asm {
+        mov eax, s
+        mov edi, dest2
+        mov ebx, [eax+4]
+        mov esi, [eax+0]
+        mov aa, ebx
+        mov ecx, [eax+328]
+        mov edx, [eax+324]
+        sub esi, ebx
+        sub edx, ecx
+        sub ecx, ebx
+        add esi, 0x800000
+        add edx, 0x800000
+        and esi, 0xffffff
+        and edx, 0xffffff
+        sub edx, 0x800000
+        sar edx, 2
+        sub esi, 0x800000
+        sar esi, 2
+        add ecx, 0x800000
+        and ecx, 0xffffff
+        sub edx, esi
+        sar edx, 2
+        sub ecx, 0x800000
+        sar ecx, 2
+        mov d, edx
+        mov c, ecx
+
+        innerluuppi:
+          mov ecx, ebx
+          add ebx, esi
+          shr ecx, 16
+          mov edx, ebx
+          shr edx, 16
+          mov ah, cl
+          mov al, dl
+          add ebx, esi
+          shl eax, 16
+          mov ecx, ebx
+          shr ecx, 16
+          add ebx, esi
+          mov ah, cl
+          mov edx, ebx
+          shr edx, 16
+          mov al, dl
+          mov [edi], eax
+
+          add edi, 320
+          mov ebx, aa
+          add ebx, c
+          mov aa, ebx
+          add esi, d
+          cmp edi, destm
+        jb innerluuppi
+      }
+    }
+  }
+}
+void interpoloi3b(int *sourke, char *dest) {
+  int c, d, aa, x, y;
+  char *dest2, *destm;
+  int *s;
+
+  bezier3(sourke);
+  c=c; d=d; aa=aa;
+  s=sourke;
+  for (y=0; y<50; y++, s++) {
+    dest2=dest+y*4*320;
+    for (x=0; x<80; x++, s++, dest2+=4) {
+      destm=dest2+4*320;
+      _asm {
+        mov eax, s
+        mov edi, dest2
+        mov ebx, [eax+4]
+        mov esi, [eax+0]
+        mov aa, ebx
+        mov ecx, [eax+328]
+        mov edx, [eax+324]
+        sub esi, ebx
+        sub edx, ecx
+        sub ecx, ebx
+        sar edx, 2
+        sar esi, 2
+        sub edx, esi
+        sar edx, 2
+        sar ecx, 2
+        mov d, edx
+        mov c, ecx
+
+        innerluuppi:
+          mov ecx, ebx
+          add ebx, esi
+          shr ecx, 16
+          mov edx, ebx
+          shr edx, 16
+          mov ah, cl
+          mov al, dl
+          add ebx, esi
+          shl eax, 16
+          mov ecx, ebx
+          shr ecx, 16
+          add ebx, esi
+          mov ah, cl
+          mov edx, ebx
+          shr edx, 16
+          mov al, dl
+          mov [edi], eax
+
+          add edi, 320
+          mov ebx, aa
+          add ebx, c
+          mov aa, ebx
+          add esi, d
+          cmp edi, destm
+        jb innerluuppi
+      }
+    }
+  }
+}
+
+
+*/
+
+
+/*
+void plussprite(int x1, int y1, int x2, int y2, int leveys, int korkeus,
+                char *source, char *dest) {
+  int y, x1b, x2b, y1b, y2b, v, i, u16, u16inc;
+  char *s2;
+  char *d2, *d2m, *d2m2;
+
+  if (x1<0)   x1b=0;   else x1b=x1;
+  if (x2>320) x2b=320; else x2b=x2;
+  if (y1<0)   y1b=0;   else y1b=y1;
+  if (y2>200) y2b=200; else y2b=y2;
+  if (x1b>x2b) return;
+  if (y1b>y2b) return;
+  u16inc=65536.0*leveys/(x2-x1);
+  for (y=y1b; y<y2b; y++) if (y>=0 && y<200) {
+    v=korkeus*(y-y1)/(y2-y1);
+    s2=source+v*leveys;
+    d2=dest+y*320; d2m=d2+x2b; d2+=x1b; d2m2=d2m-4;
+    u16=(x1b-x1)*u16inc;
+    for (; d2<d2m2; d2+=4) {
+      i=d2[0]+s2[u16>>16]; if (i>255) d2[0]=255; else d2[0]=i;/ *d2[0]=i|(i&256)-((i&256)>>8); * /u16+=u16inc;
+      i=d2[1]+s2[u16>>16]; if (i>255) d2[1]=255; else d2[1]=i;/ *d2[1]=i|(i&256)-((i&256)>>8); * /u16+=u16inc;
+      i=d2[2]+s2[u16>>16]; if (i>255) d2[2]=255; else d2[2]=i;/ *d2[2]=i|(i&256)-((i&256)>>8); * /u16+=u16inc;
+      i=d2[3]+s2[u16>>16]; if (i>255) d2[3]=255; else d2[3]=i;/ *d2[3]=i|(i&256)-((i&256)>>8); * /u16+=u16inc;
+    }
+    for (; d2<d2m; d2++, u16+=u16inc) {
+      i=*d2+s2[u16>>16]; *d2=i|(i&256)-((i&256)>>8);
+      //if (i>255) *d2=255; else *d2=i;
+    }
+  }
+}
+*/
+
+void plussprite(int x1, int y1, int x2, int y2, int leveys, int korkeus,
+                char *source, char *dest) {
+  int y, x1b, x2b, y1b, y2b, i, u16, u16_2, u16inc, v16, v16inc;
+  char *s2;
+  char *d2, *_d2, *d2m, *d2m2;
+
+  if (x1<0)       x1b=0;   else x1b=x1+255>>8;
+  if (x2>320*256) x2b=320; else x2b=x2+255>>8;
+  if (x1b>=x2b) return;
+  if (y1<0)       y1b=0;   else y1b=y1+255>>8;
+  if (y2>200*256) y2b=200; else y2b=y2+255>>8;
+  if (y1b>=y2b) return;
+  u16inc=16777216.0*leveys/(x2-x1);
+  u16_2=((x1b<<8)-x1)*u16inc>>8;
+  v16inc=16777216.0*korkeus/(y2-y1);
+  v16=((y1b<<8)-y1)*v16inc>>8;
+  _d2=dest+y1b*320;
+  for (y=y1b; y<y2b; y++) {
+    s2=source+(v16>>16)*leveys;
+    d2=_d2; d2m=d2+x2b; d2+=x1b; d2m2=d2m-4; u16=u16_2;
+    for (; d2<d2m2; d2+=4) {
+      i=d2[0]+s2[u16>>16]; if (i>255) d2[0]=255; else d2[0]=i;/*d2[0]=i|(i&256)-((i&256)>>8); */u16+=u16inc;
+      i=d2[1]+s2[u16>>16]; if (i>255) d2[1]=255; else d2[1]=i;/*d2[1]=i|(i&256)-((i&256)>>8); */u16+=u16inc;
+      i=d2[2]+s2[u16>>16]; if (i>255) d2[2]=255; else d2[2]=i;/*d2[2]=i|(i&256)-((i&256)>>8); */u16+=u16inc;
+      i=d2[3]+s2[u16>>16]; if (i>255) d2[3]=255; else d2[3]=i;/*d2[3]=i|(i&256)-((i&256)>>8); */u16+=u16inc;
+    }
+    for (; d2<d2m; d2++, u16+=u16inc) {
+      i=*d2+s2[u16>>16]; *d2=i|(i&256)-((i&256)>>8);
+      //if (i>255) *d2=255; else *d2=i;
+    }
+    v16+=v16inc; _d2+=320;
+  }
+}
+
+
+
+
+/*void plussprite_c(int x1, int y1, int x2, int y2, int leveys, int korkeus,
+                  char *source, char *dest, char br) {
+  int y, x1b, x2b, y1b, y2b, v, i, u16, u16inc;
+  char *s2;
+  char *d2, *d2m, *d2m2;
+
+  if (x1<0)   x1b=0;   else x1b=x1;
+  if (x2>320) x2b=320; else x2b=x2;
+  if (y1<0)   y1b=0;   else y1b=y1;
+  if (y2>200) y2b=200; else y2b=y2;
+  if (x1b>x2b) return;
+  if (y1b>y2b) return;
+  u16inc=65536.0*leveys/(x2-x1);
+  for (y=y1b; y<y2b; y++) if (y>=0 && y<200) {
+    v=korkeus*(y-y1)/(y2-y1);
+    s2=source+v*leveys;
+    d2=dest+y*320; d2m=d2+x2b; d2+=x1b; d2m2=d2m-4;
+    u16=(x1b-x1)*u16inc;
+    for (; d2<d2m2; d2+=4) {
+      i=d2[0]+(s2[u16>>16]*br>>8); if (i>255) d2[0]=255; else d2[0]=i;/ *d2[0]=i|(i&256)-((i&256)>>8); * /u16+=u16inc;
+      i=d2[1]+(s2[u16>>16]*br>>8); if (i>255) d2[1]=255; else d2[1]=i;/ *d2[1]=i|(i&256)-((i&256)>>8); * /u16+=u16inc;
+      i=d2[2]+(s2[u16>>16]*br>>8); if (i>255) d2[2]=255; else d2[2]=i;/ *d2[2]=i|(i&256)-((i&256)>>8); * /u16+=u16inc;
+      i=d2[3]+(s2[u16>>16]*br>>8); if (i>255) d2[3]=255; else d2[3]=i;/ *d2[3]=i|(i&256)-((i&256)>>8); * /u16+=u16inc;
+    }
+    for (; d2<d2m; d2++, u16+=u16inc) {
+      i=*d2+(s2[u16>>16]*br>>8); *d2=i|(i&256)-((i&256)>>8);
+      //if (i>255) *d2=255; else *d2=i;
+    }
+  }
+}
+
+
+
+*/
+void plussprite_c(int x1, int y1, int x2, int y2, int leveys, int korkeus,
+                  char *source, char *dest, char br) {
+  int y, x1b, x2b, y1b, y2b, i, u16, u16_2, u16inc, v16, v16inc;
+  char *s2;
+  char *d2, *d2m, *d2m2;
+
+  if (x1<0)       x1b=0;   else x1b=x1+255>>8;
+  if (x2>320*256) x2b=320; else x2b=x2+255>>8;
+  if (x1b>=x2b) return;
+  if (y1<0)       y1b=0;   else y1b=y1+255>>8;
+  if (y2>200*256) y2b=200; else y2b=y2+255>>8;
+  if (y1b>=y2b) return;
+  u16inc=16777216.0*leveys/(x2-x1);
+  u16_2=((x1b<<8)-x1)*u16inc>>8;
+  v16inc=16777216.0*korkeus/(y2-y1);
+  v16=((y1b<<8)-y1)*v16inc>>8;
+  for (y=y1b; y<y2b; y++) {
+    s2=source+(v16>>16)*leveys;
+    d2=dest+y*320; d2m=d2+x2b; d2+=x1b; d2m2=d2m-4; u16=u16_2;
+    for (; d2<d2m2; d2+=4) {
+      i=d2[0]+(s2[u16>>16]*br>>8); if (i>255) d2[0]=255; else d2[0]=i;/*d2[0]=i|(i&256)-((i&256)>>8); */u16+=u16inc;
+      i=d2[1]+(s2[u16>>16]*br>>8); if (i>255) d2[1]=255; else d2[1]=i;/*d2[1]=i|(i&256)-((i&256)>>8); */u16+=u16inc;
+      i=d2[2]+(s2[u16>>16]*br>>8); if (i>255) d2[2]=255; else d2[2]=i;/*d2[2]=i|(i&256)-((i&256)>>8); */u16+=u16inc;
+      i=d2[3]+(s2[u16>>16]*br>>8); if (i>255) d2[3]=255; else d2[3]=i;/*d2[3]=i|(i&256)-((i&256)>>8); */u16+=u16inc;
+    }
+    for (; d2<d2m; d2++, u16+=u16inc) {
+      i=*d2+(s2[u16>>16]*br>>8); *d2=i|(i&256)-((i&256)>>8);
+      //if (i>255) *d2=255; else *d2=i;
+    }
+    v16+=v16inc;
+  }
+}
+
+
+
+
+void teematriisi(float m[3][3], float a, float b, float c) {
+  float sa, ca, sb, cb, sc, cc;
+  sa=fsin(a); ca=fcos(a);
+  sb=fsin(b); cb=fcos(b);
+  sc=fsin(c); cc=fcos(c);
+  m[0][0]=-sa*sb*cc-ca*sc;
+  m[0][1]=-sa*cb;
+  m[0][2]= ca*cc-sa*sb*sc;
+  m[1][0]= ca*sb*cc-sa*sc;
+  m[1][1]= ca*cb;
+  m[1][2]= sa*cc+ca*sb*sc;
+  m[2][0]= cb*cc;
+  m[2][1]=-sb;
+  m[2][2]= cb*sc;
+}
+
+
+void teetaso2(char *dest, short *hfield,
+              float rotx, float roty, float rotz,
+              float posx, float posy, float posz) {
+  float camera[3][3];
+  float suunta[3];
+  float px, py, pz, t;
+  int x, y;
+  float perx, pery;
+  float ax, bx, cx;
+  int xypos;
+  int u,v;
+  float r;
+
+  teematriisi(camera, rotx, roty, rotz);
+
+  pery=1/12.5;
+  perx=1/15.0;
+  for (y=0; y<26; y++)
+    for (x=0; x<41; x++) {
+      suunta[0]=camera[2][0] + camera[1][0]*(y-13)*pery + camera[0][0]*(x-20)*perx;
+      suunta[1]=camera[2][1] + camera[1][1]*(y-13)*pery + camera[0][1]*(x-20)*perx;
+      suunta[2]=camera[2][2] + camera[1][2]*(y-13)*pery + camera[0][2]*(x-20)*perx;
+
+      ax=suunta[0]*suunta[0];
+      bx=suunta[0]*posx;
+      cx=posx*posx-1;
+
+      t=(fsqrt(bx*bx-ax*cx)-bx)/ax;
+      px=posx+t*suunta[0];
+      py=posy+t*suunta[1];
+      pz=posz+t*suunta[2];
+
+/*
+      u=fabs(py*128);
+      v=fabs(pz*128);
+      r=1+hfield[(v<<8)+u&65535]/1024.0;
+*/
+      u=fabs(py*64)*65536.0;
+      v=fabs(pz*64)*65536.0;
+      r=1+hfield[(v>>8&0xff00)+(u>>16&0xff)]/16384.0;
+
+
+      ax=suunta[0]*suunta[0];
+      bx=suunta[0]*posx;
+      cx=posx*posx-r*r;
+
+
+      t=(fsqrt(bx*bx-ax*cx)-bx)/ax;
+
+      px=posx+t*suunta[0];
+      py=posy+t*suunta[1];
+      pz=posz+t*suunta[2];
+
+      xypos=y*41+x;
+      qftolp(pienix+xypos, py*64*65536);
+      qftolp(pieniz+xypos, pz*64*65536);
+      qftolp(varjot+xypos, 64*65536/t-32*65536);
+      if (varjot[xypos]>250*65536) varjot[xypos]=250*65536;
+      if (varjot[xypos]<8*65536) varjot[xypos]=8*65536;
+
+    }
+  interpoloi2(pienix, isox);
+  interpoloi3(pieniz, isoz);
+  interpoloi3(varjot, valo);
+/*  for (x=0; x<64000; x++) {
+   if (reunat[x]==1) dest[x]=hm3(mappi2[(isox[x]<<8)+isoz[x]]*valo[x]>>6);
+   else dest[x]=reunat[x];
+  } */
+
+  for (x=0; x<64000; x++) dest[x]=hm(mappi2[(isox[x]<<8)+isoz[x]]*valo[x]>>6);
+}
+
+
+/*
+void teetunneli2(char *dest, short *hfield,
+                 float rotx, float roty, float rotz,
+                 float posx, float posy, float posz) {
+  float camera[3][3];
+  float suunta[3];
+  float px, py, pz, t;
+  int x, y;
+  float perx, pery;
+  float ax, bx, cx;
+  int xypos;
+  int u,v;
+  float r;
+
+  teematriisi(camera, rotx, roty, rotz);
+
+  pery=1/12.5;
+  perx=1/15.0;
+  for (y=0; y<26; y++)
+    for (x=0; x<41; x++) {
+      suunta[0]=camera[2][0] + camera[1][0]*(y-13)*pery + camera[0][0]*(x-20)*perx;
+      suunta[1]=camera[2][1] + camera[1][1]*(y-13)*pery + camera[0][1]*(x-20)*perx;
+      suunta[2]=camera[2][2] + camera[1][2]*(y-13)*pery + camera[0][2]*(x-20)*perx;
+
+      ax=(suunta[0]*suunta[0])+(suunta[1]*suunta[1]);
+      bx=(suunta[0]*posx)+(suunta[1]*posy);
+      cx=(posx*posx)+(posy*posy)-1;
+
+      t=(fsqrt(bx*bx-ax*cx)-bx)/ax;
+      px=posx+t*suunta[0];
+      py=posy+t*suunta[1];
+      pz=posz+t*suunta[2];
+
+
+      u=fabs(fpatan(px, py)/pi*256);
+      v=fabs(pz*128);
+
+
+      r=1+hfield[(v<<8)+u&65535]/1024.0;
+
+      ax=(suunta[0]*suunta[0])+(suunta[1]*suunta[1]);
+      bx=(suunta[0]*posx)+(suunta[1]*posy);
+      cx=(posx*posx)+(posy*posy)-r*r;
+
+
+      t=(fsqrt(bx*bx-ax*cx)-bx)/ax;
+
+      px=posx+t*suunta[0];
+      py=posy+t*suunta[1];
+      pz=posz+t*suunta[2];
+
+
+
+      xypos=y*41+x;
+      qftolp(pienix+xypos, fpatan(px, py)/pi*1*128*65536);
+      qftolp(pieniz+xypos, pz*64*65536);
+      qftolp(varjot+xypos, t*65536*64);
+      if (varjot[xypos]>250*65536) varjot[xypos]=250*65536;
+    }
+  interpoloi2(pienix, isox);
+  interpoloi3(pieniz, isoz);
+  interpoloi3(varjot, valo);
+  for (x=0; x<64000; x++) dest[x]=(mappi2[(isox[x]<<8)+isoz[x]]*valo[x]>>7);
+//  for (x=0; x<64000; x++) dest[x]=mappi[(isox[x]<<8)+isoz[x]];
+
+}
+*/
+
+
+
+void teepallo2(char *dest, short *hfield,
+               float rotx, float roty, float rotz,
+               float posx, float posy, float posz, float per) {
+  float camera[3][3];
+  float suunta[3];
+  float px, py, pz, t;
+  int x, y;
+  float perx, pery;
+  float ax, bx, cx;
+  int xypos;
+  float r;
+  int u,v;
+
+  teematriisi(camera, rotx, roty, rotz);
+
+  pery=per/12.5;
+  perx=per/15.0;
+  for (y=0; y<26; y++)
+    for (x=0; x<41; x++) {
+      suunta[0]=camera[2][0] + camera[1][0]*(y-13)*pery + camera[0][0]*(x-20)*perx;
+      suunta[1]=camera[2][1] + camera[1][1]*(y-13)*pery + camera[0][1]*(x-20)*perx;
+      suunta[2]=camera[2][2] + camera[1][2]*(y-13)*pery + camera[0][2]*(x-20)*perx;
+
+      ax=(suunta[0]*suunta[0])+(suunta[1]*suunta[1])+(suunta[2]*suunta[2]);
+      bx=(suunta[0]*posx)+(suunta[1]*posy)+(suunta[2]*posz);
+      cx=(posx*posx)+(posy*posy)+(posz*posz)-1;
+
+      t=(fsqrt(bx*bx-ax*cx)-bx)/ax;
+
+      px=posx+t*suunta[0];
+      py=posy+t*suunta[1];
+      pz=posz+t*suunta[2];
+/********/
+
+//      u=fabs(fpatan(px, py)/pi*256);
+//      v=fabs(fpatan(pz, fsqrt(px*px+py*py))*128);
+//      r=1+hfield[(v<<8)+u&65535]/1024.0;
+
+      u=fabs(px*256)*65536.0;
+      v=fabs(py*64)*65536.0;
+      r=1+hfield[(v>>8&0xff00)+(u>>16&0xff)]/16384.0;
+
+
+      ax=(suunta[0]*suunta[0])+(suunta[1]*suunta[1])+(suunta[2]*suunta[2]);
+      bx=(suunta[0]*posx)+(suunta[1]*posy)+(suunta[2]*posz);
+      cx=(posx*posx)+(posy*posy)+(posz*posz)-r*r;
+
+
+      t=(fsqrt(bx*bx-ax*cx)-bx)/ax;
+
+      px=posx+t*suunta[0];
+      py=posy+t*suunta[1];
+      pz=posz+t*suunta[2];
+
+/*********/
+      xypos=y*41+x;
+      qftolp(pienix+xypos, fpatan(px, py)/pi*256*65536);
+      qftolp(pieniz+xypos, fpatan(pz, fsqrt(px*px+py*py))*128*65536);
+      qftolp(varjot+xypos, 64*65536/t-32*65526);
+      if (varjot[xypos]>250*65536) varjot[xypos]=250*65536;
+      if (varjot[xypos]<8*65536) varjot[xypos]=8*65536;
+
+    }
+
+  interpoloi2(pienix, isox);
+  interpoloi3(pieniz, isoz);
+  interpoloi3(varjot, valo);
+  for (x=0; x<64000; x++) dest[x]=hm(mappi2[(isox[x]<<8)+isoz[x]]*valo[x]>>6);
+}
+
+
+
+
+
+
+void teepistevektori(char *dest, int *datx, int *daty, int *datz, int dots,
+                     float rotx, float roty, float rotz, float posx, float posy, float posz) {
+  float camera[3][3];
+  int uusix[valom], uusiy[valom], uusiz[valom];
+  int x, y, z, i, x1, y1, x2, y2;
+  int px, py, pz;
+
+  px=posx*16384;
+  py=posy*16384;
+  pz=posz*16384;
+
+  teematriisi(camera, rotx, roty, rotz);
+
+  for (i=0; i<dots; i++) {
+
+    uusix[i]=camera[0][0]*(datx[i]-px) + camera[0][1]*(daty[i]-py) + camera[0][2]*(datz[i]-pz);
+    uusiy[i]=camera[1][0]*(datx[i]-px) + camera[1][1]*(daty[i]-py) + camera[1][2]*(datz[i]-pz);
+    uusiz[i]=camera[2][0]*(datx[i]-px) + camera[2][1]*(daty[i]-py) + camera[2][2]*(datz[i]-pz);
+  }
+
+  for (i=0; i<dots; i++) {
+    x=uusix[i]/(uusiz[i]+0.5)*32768.0;
+    y=uusiy[i]/(uusiz[i]+0.5)*32768.0;
+    z=16000/(uusiz[i]+0.5)*4096; if (z>16384) z=16384;
+    x1=x-z;
+    y1=y-z;
+    x2=x+z;
+    y2=y+z;
+    if (uusiz[i]>0) plussprite(x1+160*256 ,y1+100*256 ,x2+160*256, y2+100*256, 32, 32, valospr, dest);
+  }
+}
+
+
+
+void teevaloja1(char *dest, float rotx, float roty, float rotz,
+                float posx, float posy, float posz, float time, int valoja) {
+  int data_x[valom], data_y[valom], data_z[valom];
+  int x;
+
+  for (x=0; x<valoja; x++) {
+    data_x[x]=valot_x[x]*fsin(time+univ_a[x]/256);
+    data_y[x]=valot_y[x]*fsin(time+univ_a[x]/256);
+    data_z[x]=valot_z[x]*fsin(time+univ_a[x]/256);
+  }
+  teepistevektori(dest, data_x, data_y, data_z, valoja, rotx, roty, rotz, posx, posy, posz);
+}
+
+
+
+void teefield(int joo, short *dest) {
+  int x,y;
+
+  for (y=0; y<256; y++) for (x=0; x<256; x++) {
+    dest[(y<<8)+x]=(sint1[y-x+joo&255]+sint2[sint3[x-joo&255]-y&255]-sint3[y+joo*2&255])*32;
+  }
+}
+
+void unzoomaa(char *sourke, char *dest, int w, int h) {
+  int x,y,i,j,k;
+  int w2,h2;
+
+  w2=w<<1;
+  h2=h<<1;
+  for (y=0; y<h; y++) for (x=0; x<w; x++) {
+    i=(y<<1)*320+(x<<1);
+    j=y*w2+x;
+//    k=sourke[i]+sourke[i+1]+sourke[i+w2]+sourke[i+w2+1]>>3;
+    k=((sourke[i]+sourke[i+1]+sourke[i+w2]+sourke[i+w2+1])*3)>>4;
+
+    dest[j]=k;
+    dest[j+w]=k;
+    dest[j+w2*h]=k;
+    dest[j+w2*h+w]=k;
+  }
+}
+
+void zoomaa(char *sourke, char *dest, int w, int h) {
+  int x1,y1,x2,y2;
+  int x,y,u,v;
+  char *s, *d;
+
+/*  x1=w/2-w/4;
+  y1=h/2-h/4;
+  x2=w/2+w/4;
+  y2=h/2+h/4; */
+
+  x1=160-80;
+  y1=100-50;
+  x2=160+80;
+  y2=100+50;
+
+/*  for (y=y1, v=0; y<y2; y++, v+=2) for (x=x1, u=0; x<x2; x++, u+=2) {
+     dest[v*320+u    ]=sourke[y*320+x]+1>>1;
+     dest[v*320+u+1  ]=sourke[y*320+x]+sourke[y*320+x+1]+2>>2;
+     dest[v*320+u+320]=sourke[y*320+x]+sourke[y*320+x+320]+2>>2;
+     dest[v*320+u+321]=sourke[y*320+x]+sourke[y*320+x+1]+sourke[y*320+x+320]+sourke[y*320+x+321]+4>>3;
+  }*/
+  for (y=y1, v=0; y<y2; y++, v+=2) {
+    d=dest+v*320; s=sourke+y*320+x1;
+    for (x=x1; x<x2; x++, d+=2, s++) {
+      d[0]=s[0]+1>>1;
+      d[1]=(s[0]+s[1])*5-(s[-1]+s[2])+8>>4;
+    }
+  }
+  for (v=1; v<200; v+=2) {
+    d=dest+v*320;
+    if (v==1 || v==199)
+      for (u=0; u<320; u++, d++) d[0]=d[-320]+d[320]+1>>1;
+    else
+      for (u=0; u<320; u++, d++) d[0]=(d[-320]+d[320])*5-(d[-960]+d[960])+4>>3;
+  }
+}
+
+void kuvazoomeri(char *dest, float z, float aika, float kerroin) {
+  int x, y, i, j, s;
+  float nx, ny;
+
+  if (kerroin<0) kerroin=0;
+  for (y=0; y<80; y++) for (x=0; x<50; x++) {
+    nx=(x-25)+fsin(aika+randtaul[y*50+x]/256)*kerroin;
+    ny=(y-40)+fsin(aika+randtaul[y*50+x+1]/256)*kerroin;
+    i=nx*z/4+160*256;
+    j=ny*z/4+100*256;
+    if (musatimer()<15*64) s=z/4;
+    else s=683.59375-(z/4-683.59375)*4;
+    if (sprite[y*50+x]>0)
+      plussprite_c(i-s, j-s, i+s, j+s, 32, 32, valospr, dest, sprite[y*50+x]<<2);
+  }
+}
+
+void z00m(char *source, int xc, int yc, int xs, int ys, int x1, int y1,
+          int x2, int y2, int *dest) {
+  int x, y, xx, yy, a, b, c;
+  char xx2, yy2;
+  char *sourke,*zourke2;
+
+  xs*=2;
+  for (y=0;y<y1;y++) for (x=0;x<80;x++) *dest++=0;
+  for (;y<y2;y++) {
+    yy=(y-y1)*ys+yc;yy2=yy>>12&0xf;
+    sourke=source+(yy>>16)*160;
+    xx=xc;b=0;
+    for (x=0;x<x1;x++) *dest++=0;
+    for (;x<x2;x++) {
+      xx2=xx>>12&0xf;
+      zourke2=sourke+(xx>>16);
+      c=(zourke2[0]<<4)+(zourke2[1]-zourke2[0])*xx2;
+      a=(c<<4)+((zourke2[160]<<4)+(zourke2[161]-zourke2[160])*xx2-c)*yy2+0x40;
+      xx+=xs;
+      xx2=xx>>12&0xf;
+      zourke2=sourke+(xx>>16);
+      c=(zourke2[0]<<4)+(zourke2[1]-zourke2[0])*xx2;
+      c=(c<<4)+((zourke2[160]<<4)+(zourke2[161]-zourke2[160])*xx2-c)*yy2+0x40;
+      *dest++=(a+b>>9)+(a&0xff00)+((a+c<<7)&0xff0000)+(c<<16&0xff000000);
+//      dest+=4;
+      b=c;
+      xx+=xs;
+    }
+    for (;x<80;x++) *dest++=0;
+  }
+  for (;y<200;y++) for (x=0;x<80;x++) *dest++=0;
+}
+
+
+void teezoomi(float z) {
+  int xs,ys;
+  float z1=z*500.0;
+  if (z1<256) {
+    xs=40; ys=100;
+  } else {
+    xs=20*65536/z1;
+    ys=60*65536/z1;
+    if (xs>40) xs=40;
+    if (ys>100) ys=100;
+  }
+  z00m(lehma, 80*65536-xs*z1*4, 60*65536-ys*z1, z1, z1, 40-xs, 100-ys, 40+xs, 100+ys, (int*)dbuf);
+}
+
+
+
+
+void __interrupt __far (*get_intr(int no))();
+#pragma aux get_intr="mov eax,0x204""int 0x31" parm [ebx] value [cx edx] modify [eax ebx ecx edx esi edi];
+void set_intr(int no, void __interrupt __far (*f)());
+#pragma aux set_intr="mov eax,0x205""int 0x31" parm [ebx][cx edx] modify [eax ebx ecx edx esi edi];
+
+
+
+static volatile char keys[144], kcnt[144];
+void __interrupt __far (*oldk)();
+void __interrupt __far __loadds newk() {
+  int a;
+  a=sisaan(0x60);
+  if (a<0x80) { keys[a]=1; kcnt[a]++; } else keys[a-0x80]=0;
+
+  a=keys[128]; keys[128]=keys[29]&&keys[56]&&keys[83]; kcnt[128]+=keys[128]&&!a;
+  a=keys[129]; keys[129]=keys[29]&&keys[69]; kcnt[129]+=keys[129]&&!a;
+  ulos(0x20, 0x20);
+
+  if ((kcnt[128]&1)&&!keys[128]) {
+    set_intr(0x9, oldk);
+    _asm {
+      mov eax,3h
+      int 10h
+    };
+    dosputs("Now it's safe to turn off your computer.\r\n$");
+    exit(1);
+  }
+}
+
+
+
+
+void main() {
+  int x, y, br;
+  float a, b;
+  int port;
+//  doshandle f;
+  static char paskaa[4096000];
+
+  hinit(paskaa,sizeof(paskaa));
+
+  dosputs("Where is your GUS [2x0]? (enter=quiet)\r\n$");
+  for (port=0x1234; port==0x1234; ) {
+    switch (tiny_inkey()) {
+      case '0': port=0x200; break;
+      case '1': port=0x210; break;
+      case '2': port=0x220; break;
+      case '3': port=0x230; break;
+      case '4': port=0x240; break;
+      case '5': port=0x250; break;
+      case '6': port=0x260; break;
+      case '7': port=0x270; break;
+      case 13: port=0; break;
+    }
+  }
+  xmpInit(mjuzic+16384, port|0x80000000, mjuzic, 65536);
+
+  dosputs("Calculating GUS address $");
+  precalculatemappi();
+  precalculoitcpaska();
+  precalcshit();
+  kasittelelogo(logo1);
+  kasittelelogo(logo2);
+
+  v_open(3);
+  oldk=get_intr(0x9);
+  set_intr(0x9, newk);
+  xmpPlay(0);
+
+  while (musatimer()<64*28+15 && !kcnt[1]) {
+    videomem=v_getlfb();
+    a=musatimer()/4.0;
+
+//    for (y=0; y<64; y++) for (x=0; x<256; x++) videomem[y*320+x]=paletti2[y*256+x];
+//    for (x=0; x<64000; x++) videomem[x]=plasma2[x]/2*(2048+64+1);
+    v_copy();
+
+
+    if (1) {  //design
+
+///////////////////////////////////// flaret
+
+      if (mdata->curord<8) {
+        cur_valom=a/2;
+        if (cur_valom>valom/2) cur_valom=valom/2;
+        br=63; if (mdata->curord==7) br=63-mdata->currow;
+
+        zoomaa(dbuf, dbuf2, 160, 100);
+        teevaloja1(dbuf2, fsin(a*0.444)*0.75, 0, 0,
+                          -2.3+fsin(a*pi/8)*0.5, 0, 0, a/2, cur_valom);
+        teeharmaastavari(videomem, dbuf2, plasma2, paletti3, br*1024);
+        v_copy();
+
+        zoomaa(dbuf2, dbuf, 160, 100);
+        teevaloja1(dbuf , fsin(a*0.444)*0.75, 0, 0,
+                          -2.3+fsin(a*pi/8)*0.5, 0, 0, a/2, cur_valom);
+        teeharmaastavari(videomem, dbuf, plasma2, paletti3, br*1024);
+        v_copy();
+      }
+
+///////////////////////////////////// taso+logot
+
+      if (mdata->curord>7 && mdata->curord<12) {
+        br=63;
+        if (mdata->curord==8) br=mdata->currow;
+        if (mdata->curord==11) br=63-mdata->currow;
+
+        teefield(a*16.66, hfield1);
+        teetaso2(dbuf, hfield1, fsin(a*0.156)*0.765, 0, 0, fsin(a*0.166)*0.2, -pi, pi);
+        if (mdata->curord==9) for (x=16000; x<48000; x++) dbuf[x]=hm(dbuf[x]+logo1[x]);
+        if (mdata->curord==10) for (x=16000; x<48000; x++) dbuf[x]=hm(dbuf[x]+logo2[x]);
+
+        teeharmaastavari(videomem, dbuf, plasma2, paletti1, br*1024);
+        v_copy();
+      }
+
+///////////////////////////////////// flarekuva
+
+
+      if (mdata->curord>11 && mdata->curord<16) {
+        br=63; if (mdata->curord==15) br=63-mdata->currow;
+        b=(musatimer()-12*64)/15.0;
+
+        fill32(dbuf, 16000, 0);
+        kuvazoomeri(dbuf, 35000/b, a/2.0, (15*64-musatimer())/100.0);
+        teeharmaastavari(videomem, dbuf, plasma1, paletti2, br*1024);
+        v_copy();
+
+      }
+
+///////////////////////////////////// silm„meduusapallo
+
+      if (mdata->curord>15 && mdata->curord<20) {
+        br=63;
+        if (mdata->curord==16) br=mdata->currow;
+        if (mdata->curord==19) br=63-mdata->currow;
+        teefield(a*32.0, hfield1);
+        teepallo2(dbuf, hfield1, fsin(a*0.256)*1.2, 0, 0, 0, fsin(a*0.166)*0.4, 0, fsin(a*0.123)+2);
+        teeharmaastavari(videomem, dbuf, plasma1, paletti1, br*1024);
+        v_copy();
+      }
+
+///////////////////////////////////// flaret ja unzoomeri
+
+
+      if (mdata->curord>19 && mdata->curord<24) {
+        br=63;
+        if (mdata->curord==20) br=mdata->currow;
+        if (mdata->curord==23) br=63-mdata->currow;
+
+        unzoomaa(dbuf, dbuf2, 160, 100);
+        teevaloja1(dbuf2, fsin(a*0.444)*0.75, 0, 0,
+                          -2.0+fsin(a*pi/8)*0.5, 0, 0, a/2, valom);
+        teeharmaastavari(videomem, dbuf2, plasma1, paletti1, br*1024);
+        v_copy();
+        unzoomaa(dbuf2, dbuf, 160, 100);
+        teevaloja1(dbuf , fsin(a*0.444)*0.75, 0, 0,
+                          -2.0+fsin(a*pi/8)*0.5, 0, 0, a/2, valom);
+        teeharmaastavari(videomem, dbuf, plasma1, paletti1, br*1024);
+        v_copy();
+      }
+
+
+///////////////////////////////////// bezierunzoomeri ja plasma
+
+      if (mdata->curord>23) {
+        br=63;
+        if (mdata->curord==24) br=mdata->currow;
+        if (mdata->curord==28) br=63-mdata->currow*4;
+        b=(musatimer()-24*64)/30.0;
+        teezoomi(b*b+0.01);
+        teeharmaastavari(videomem, dbuf, plasma1, paletti1, br*1024);
+        v_copy();
+      }
+    }
+
+    while (kcnt[129]&1) ;
+    if (kcnt[0x4e]) { mdata->jumptoord=mdata->curord+1; kcnt[0x4e]=0; }
+
+  }
+
+  set_intr(0x9, oldk);
+  xmpStop();
+  v_close();
+//  mode(0x3);
+
+}

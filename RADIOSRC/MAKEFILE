@@ -1,0 +1,82 @@
+ccopts = -onailmrh -s -fpi87 -d1 -fp3 -6r -e5 -zp=1 -w9 -we -wcd=201 -wcd=202
+#-dDEBUG
+#ccopts = -od -s -fpi87 -d1 -fp3 -6r -e5 -zp=1 -w9 -we -wcd=201 -wcd=202 -dDEBUG
+asmopts = -UT310 -p -ml -m9 -zi -dDEBUG
+
+makeobjs1 += testi.obj functs.obj obuja.obj scan.obj
+makeobjs1 += draw.obj phile.obj korean.obj bankgoth.obj scifi.obj
+makeobjs2 += rest.obj space.obj matter.obj font.obj read3ds.obj
+makeobjs2 += tiny.obj mesh.obj maasto.obj
+makeobjs = $(makeobjs1) $(makeobjs2)
+
+
+objs+= $(makeobjs)
+
+rmk = *.h makefile
+
+
+
+
+#.silent
+.extensions:
+.extensions: .lst .obj .c .asm .cpp .xm .tga .raw
+
+all : demo.exe .symbolic
+
+
+#$(makeobjs) :: $(rmk)
+#  del $^*.obj
+
+.cpp.obj : .autodepend
+  @echo $^*.cpp
+  @wpp386 -zq $(ccopts) $^*.cpp
+
+.c.obj : .autodepend
+  @echo $^*.c
+  @wcc386 $(ccopts) $^*.c
+#|grep size
+
+#tri.obj : tri.c
+#  @echo $^*.c
+#  @wcc386 -onatilmrh $(ccopts) $^*.c
+
+.asm.obj :
+  @echo $^*.asm
+  @tasm $(asmopts) $^*.asm
+
+.xm.obj :
+  xm2mxm.exe $^*.xm temp786x.666 -p5
+  copy /b shit+temp786x.666 temp786x.667
+  binobj32 temp786x.667 $^*.obj mjuzic
+  del temp786x.666 temp786x.667
+
+.obj.lst :
+  wdis -fi -l -s $^*
+
+
+demo.exe : $(objs) $(rmk)
+  @echo $^*.exe
+  @%write temp786x.666 name $^*
+  @%write temp786x.666 library libyawc,midas
+  @%write temp786x.666 file { $(objs) }
+  @%write temp786x.666 option caseexact
+  @%write temp786x.666 option stack=32k
+#  @%write temp786x.666 option nodefaultlibs
+  @%write temp786x.666 system dos4g
+  @wlink @temp786x.666
+  @del temp786x.666 >nul
+#  @pmwlite $^*.exe
+  #@pmwsetup /V32 $^*.exe >nul
+
+
+clean : .symbolic
+  for %a in (*.exe *.bak *.err *.zip *.lst $(makeobjs)) do del %a
+run : demo.exe .symbolic
+  @echo run
+  @demo.exe
+  @fixtmr
+
+
+
+
+

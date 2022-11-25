@@ -1,0 +1,22 @@
+test3d.exe : test3d.obj enkine.obj vid.obj tinyheap.obj tinystrt.obj mxmplay2.obj opu2.obj flare.obj
+  wlink @test3d.wlk
+#  pmwlite test3d.exe
+
+test3d.obj : test3d.c enkine.h tunneli.c vid.h mxmplay2.h dots.c
+  wcc386.exe -oneatx -zp1 -s -fpi87 -fp5 -5r -e5 -w3 test3d
+
+enkine.obj : enkine.c enkine.h
+  wcc386.exe -oneatx -zp1 -s -fpi87 -fp5 -5r -e5 -w3 enkine
+
+vid.obj : vid.c vid.h
+  wcc386.exe -oneatx -zp1 -s -fpi87 -fp5 -5r -e5 -w3 vid
+
+flare.obj : flare.c
+  wcc386.exe -oneatx -zp1 -s -fpi87 -fp5 -5r -e5 -w3 flare
+
+opu2.obj : opu2.c opu2.h
+  wcc386.exe -oneatx -zp1 -s -fpi87 -fp5 -5r -e5 -w3 opu2
+
+run : test3d.exe
+  test3d.exe
+

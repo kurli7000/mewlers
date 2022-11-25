@@ -1,0 +1,8 @@
+flare.c(70): Warning! W202: Symbol 'x' has been defined, but not referenced
+flare.c(70): Warning! W202: Symbol 'r' has been defined, but not referenced
+flare.c(70): Warning! W202: Symbol 'd' has been defined, but not referenced
+flare.c(70): Warning! W202: Symbol 'c' has been defined, but not referenced
+flare.c(70): Warning! W202: Symbol 'b' has been defined, but not referenced
+flare.c(70): Warning! W202: Symbol 'a' has been defined, but not referenced
+flare.c(222): Warning! W102: Type mismatch
+flare.c(222): Warning! W301: No prototype found for 'malloc'

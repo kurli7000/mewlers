@@ -1,0 +1,1403 @@
+Module: C:\WC\C\IMPACT3\tri.c
+GROUP: 'DGROUP' CONST,CONST2,_DATA,_BSS
+
+File contains no line numbers.
+Segment: _TEXT PARA USE32 00001305 bytes
+0000                          ugonvi_:
+0000    51                        push      ecx
+0001    52                        push      edx
+0002    89 C2                     mov       edx,eax
+0004    89 C1                     mov       ecx,eax
+0006    C1 FA 03                  sar       edx,0x00000003
+0009    C1 F9 02                  sar       ecx,0x00000002
+000C    81 E2 FF 07 00 00         and       edx,0x000007ff
+0012    81 E1 00 10 00 00         and       ecx,0x00001000
+0018    09 D1                     or        ecx,edx
+001A    89 C2                     mov       edx,eax
+001C    D1 FA                     sar       edx,0x00000001
+001E    81 E2 00 40 00 00         and       edx,0x00004000
+0024    09 D1                     or        ecx,edx
+0026    89 C2                     mov       edx,eax
+0028    81 E2 00 00 01 00         and       edx,0x00010000
+002E    09 D1                     or        ecx,edx
+0030    8D 14 00                  lea       edx,[eax+eax]
+0033    81 E2 00 00 04 00         and       edx,0x00040000
+0039    09 D1                     or        ecx,edx
+003B    8D 14 85 00 00 00 00      lea       edx,[eax*4]
+0042    81 E2 00 00 10 00         and       edx,0x00100000
+0048    09 D1                     or        ecx,edx
+004A    8D 14 C5 00 00 00 00      lea       edx,[eax*8]
+0051    81 E2 00 00 40 00         and       edx,0x00400000
+0057    09 D1                     or        ecx,edx
+0059    89 C2                     mov       edx,eax
+005B    C1 E2 04                  shl       edx,0x00000004
+005E    81 E2 00 00 00 01         and       edx,0x01000000
+0064    09 D1                     or        ecx,edx
+0066    89 C2                     mov       edx,eax
+0068    C1 E2 05                  shl       edx,0x00000005
+006B    81 E2 00 00 00 04         and       edx,0x04000000
+0071    09 D1                     or        ecx,edx
+0073    89 C2                     mov       edx,eax
+0075    C1 E2 06                  shl       edx,0x00000006
+0078    C1 E0 07                  shl       eax,0x00000007
+007B    81 E2 00 00 00 10         and       edx,0x10000000
+0081    25 00 00 00 40            and       eax,0x40000000
+0086    09 CA                     or        edx,ecx
+0088    09 D0                     or        eax,edx
+008A    5A                        pop       edx
+008B    59                        pop       ecx
+008C    C3                        ret       
+008D    8D 40 00                  lea       eax,[eax]
+0090                          vgonvi_:
+0090    51                        push      ecx
+0091    52                        push      edx
+0092    89 C2                     mov       edx,eax
+0094    89 C1                     mov       ecx,eax
+0096    C1 FA 03                  sar       edx,0x00000003
+0099    D1 F9                     sar       ecx,0x00000001
+009B    81 E2 FF 07 00 00         and       edx,0x000007ff
+00A1    81 E1 00 20 00 00         and       ecx,0x00002000
+00A7    09 D1                     or        ecx,edx
+00A9    89 C2                     mov       edx,eax
+00AB    81 E2 00 80 00 00         and       edx,0x00008000
+00B1    09 D1                     or        ecx,edx
+00B3    8D 14 00                  lea       edx,[eax+eax]
+00B6    81 E2 00 00 02 00         and       edx,0x00020000
+00BC    09 D1                     or        ecx,edx
+00BE    8D 14 85 00 00 00 00      lea       edx,[eax*4]
+00C5    81 E2 00 00 08 00         and       edx,0x00080000
+00CB    09 D1                     or        ecx,edx
+00CD    8D 14 C5 00 00 00 00      lea       edx,[eax*8]
+00D4    81 E2 00 00 20 00         and       edx,0x00200000
+00DA    09 D1                     or        ecx,edx
+00DC    89 C2                     mov       edx,eax
+00DE    C1 E2 04                  shl       edx,0x00000004
+00E1    81 E2 00 00 80 00         and       edx,0x00800000
+00E7    09 D1                     or        ecx,edx
+00E9    89 C2                     mov       edx,eax
+00EB    C1 E2 05                  shl       edx,0x00000005
+00EE    81 E2 00 00 00 02         and       edx,0x02000000
+00F4    09 D1                     or        ecx,edx
+00F6    89 C2                     mov       edx,eax
+00F8    C1 E2 06                  shl       edx,0x00000006
+00FB    81 E2 00 00 00 08         and       edx,0x08000000
+0101    09 D1                     or        ecx,edx
+0103    89 C2                     mov       edx,eax
+0105    C1 E2 07                  shl       edx,0x00000007
+0108    C1 E0 08                  shl       eax,0x00000008
+010B    81 E2 00 00 00 20         and       edx,0x20000000
+0111    25 00 00 00 80            and       eax,0x80000000
+0116    09 CA                     or        edx,ecx
+0118    09 D0                     or        eax,edx
+011A    5A                        pop       edx
+011B    59                        pop       ecx
+011C    C3                        ret       
+011D    8D 40 00                  lea       eax,[eax]
+
+Routine Size: 288 bytes,    Routine Base: _TEXT + 0000
+
+0120                          triprep_:
+0120    89 15 00 00 00 00         mov       _zbuf,edx
+0126    A3 00 00 00 00            mov       _dbuf,eax
+012B    C3                        ret       
+
+Routine Size: 12 bytes,    Routine Base: _TEXT + 0120
+
+012C                          zfilltri_:
+012C    53                        push      ebx
+012D    51                        push      ecx
+012E    52                        push      edx
+012F    56                        push      esi
+0130    57                        push      edi
+0131    55                        push      ebp
+0132    83 EC 20                  sub       esp,0x00000020
+0135    8B 50 04                  mov       edx,[eax+0x4]
+0138    8B 08                     mov       ecx,[eax]
+013A    89 54 24 0C               mov       [esp+0xc],edx
+013E    8B 50 08                  mov       edx,[eax+0x8]
+0141    8B 40 0C                  mov       eax,[eax+0xc]
+0144    8B 00                     mov       eax,[eax]
+0146    A3 20 00 00 00            mov       L$25,eax
+014B    8B 44 24 0C               mov       eax,[esp+0xc]
+014F    89 54 24 08               mov       [esp+0x8],edx
+0153    8B 51 04                  mov       edx,[ecx+0x4]
+0156    8B 40 04                  mov       eax,[eax+0x4]
+0159    29 D0                     sub       eax,edx
+015B    89 44 24 1C               mov       [esp+0x1c],eax
+015F    8B 44 24 0C               mov       eax,[esp+0xc]
+0163    8B 19                     mov       ebx,[ecx]
+0165    8B 00                     mov       eax,[eax]
+0167    29 D8                     sub       eax,ebx
+0169    89 44 24 18               mov       [esp+0x18],eax
+016D    DB 44 24 1C               fild      dword ptr [esp+0x1c]
+0171    DB 44 24 18               fild      dword ptr [esp+0x18]
+0175    DE F1                     fdivrp    st(1),st
+0177    8B 44 24 08               mov       eax,[esp+0x8]
+017B    8B 40 04                  mov       eax,[eax+0x4]
+017E    29 D0                     sub       eax,edx
+0180    89 44 24 1C               mov       [esp+0x1c],eax
+0184    8B 44 24 08               mov       eax,[esp+0x8]
+0188    8B 00                     mov       eax,[eax]
+018A    29 D8                     sub       eax,ebx
+018C    89 44 24 18               mov       [esp+0x18],eax
+0190    DB 44 24 1C               fild      dword ptr [esp+0x1c]
+0194    DB 44 24 18               fild      dword ptr [esp+0x18]
+0198    DE F1                     fdivrp    st(1),st
+019A    8B 54 24 0C               mov       edx,[esp+0xc]
+019E    8B 44 24 08               mov       eax,[esp+0x8]
+01A2    8B 6A 04                  mov       ebp,[edx+0x4]
+01A5    8B 40 04                  mov       eax,[eax+0x4]
+01A8    29 E8                     sub       eax,ebp
+01AA    89 44 24 1C               mov       [esp+0x1c],eax
+01AE    8B 44 24 08               mov       eax,[esp+0x8]
+01B2    8B 1A                     mov       ebx,[edx]
+01B4    8B 00                     mov       eax,[eax]
+01B6    29 D8                     sub       eax,ebx
+01B8    89 44 24 18               mov       [esp+0x18],eax
+01BC    DB 44 24 1C               fild      dword ptr [esp+0x1c]
+01C0    DB 44 24 18               fild      dword ptr [esp+0x18]
+01C4    DE F1                     fdivrp    st(1),st
+01C6    D9 CA                     fxch      st(2)
+01C8    D9 15 08 00 00 00         fst       dword ptr L$19
+01CE    D9 C9                     fxch      st(1)
+01D0    D9 1D 0C 00 00 00         fstp      dword ptr L$20
+01D6    D9 C9                     fxch      st(1)
+01D8    D9 1D 10 00 00 00         fstp      dword ptr L$21
+01DE    D8 1D 0C 00 00 00         fcomp     dword ptr L$20
+01E4    DF E0                     fnstsw    ax
+01E6    9E                        sahf      
+01E7    73 07                     jae       L$1
+01E9    B8 01 00 00 00            mov       eax,0x00000001
+01EE    EB 02                     jmp       L$2
+01F0                          L$1:
+01F0    31 C0                     xor       eax,eax
+01F2                          L$2:
+01F2    A3 1C 00 00 00            mov       L$24,eax
+01F7    85 C0                     test      eax,eax
+01F9    74 17                     je        L$3
+01FB    B8 38 00 00 00            mov       eax,offset L$31
+0200    BD 24 00 00 00            mov       ebp,offset L$26
+0205    A3 50 00 00 00            mov       L$36,eax
+020A    89 2D 4C 00 00 00         mov       L$35,ebp
+0210    EB 16                     jmp       L$4
+0212                          L$3:
+0212    BF 24 00 00 00            mov       edi,offset L$26
+0217    BE 38 00 00 00            mov       esi,offset L$31
+021C    89 3D 50 00 00 00         mov       L$36,edi
+0222    89 35 4C 00 00 00         mov       L$35,esi
+0228                          L$4:
+0228    8B 51 04                  mov       edx,[ecx+0x4]
+022B    C1 FA 0C                  sar       edx,0x0000000c
+022E    8D 04 95 00 00 00 00      lea       eax,[edx*4]
+0235    01 D0                     add       eax,edx
+0237    8B 15 00 00 00 00         mov       edx,_dbuf
+023D    C1 E0 06                  shl       eax,0x00000006
+0240    8D 34 02                  lea       esi,[edx+eax]
+0243    8B 44 24 0C               mov       eax,[esp+0xc]
+0247    8B 58 04                  mov       ebx,[eax+0x4]
+024A    C1 FB 0C                  sar       ebx,0x0000000c
+024D    8D 04 9D 00 00 00 00      lea       eax,[ebx*4]
+0254    01 D8                     add       eax,ebx
+0256    C1 E0 06                  shl       eax,0x00000006
+0259    8D 1C 02                  lea       ebx,[edx+eax]
+025C    8B 44 24 08               mov       eax,[esp+0x8]
+0260    89 5C 24 04               mov       [esp+0x4],ebx
+0264    8B 58 04                  mov       ebx,[eax+0x4]
+0267    C1 FB 0C                  sar       ebx,0x0000000c
+026A    8D 04 9D 00 00 00 00      lea       eax,[ebx*4]
+0271    01 D8                     add       eax,ebx
+0273    C1 E0 06                  shl       eax,0x00000006
+0276    01 C2                     add       edx,eax
+0278    8B 44 24 08               mov       eax,[esp+0x8]
+027C    89 14 24                  mov       [esp],edx
+027F    8B 40 04                  mov       eax,[eax+0x4]
+0282    8B 51 04                  mov       edx,[ecx+0x4]
+0285    29 D0                     sub       eax,edx
+0287    89 44 24 1C               mov       [esp+0x1c],eax
+028B    8B 44 24 0C               mov       eax,[esp+0xc]
+028F    8B 19                     mov       ebx,[ecx]
+0291    8B 00                     mov       eax,[eax]
+0293    29 D8                     sub       eax,ebx
+0295    89 44 24 18               mov       [esp+0x18],eax
+0299    8B 44 24 0C               mov       eax,[esp+0xc]
+029D    8B 40 04                  mov       eax,[eax+0x4]
+02A0    DB 44 24 1C               fild      dword ptr [esp+0x1c]
+02A4    29 D0                     sub       eax,edx
+02A6    DB 44 24 18               fild      dword ptr [esp+0x18]
+02AA    89 44 24 1C               mov       [esp+0x1c],eax
+02AE    8B 44 24 08               mov       eax,[esp+0x8]
+02B2    D8 C9                     fmul      st,st(1)
+02B4    8B 00                     mov       eax,[eax]
+02B6    29 D8                     sub       eax,ebx
+02B8    89 44 24 18               mov       [esp+0x18],eax
+02BC    DB 44 24 1C               fild      dword ptr [esp+0x1c]
+02C0    DB 44 24 18               fild      dword ptr [esp+0x18]
+02C4    D8 C9                     fmul      st,st(1)
+02C6    DE EA                     fsubp     st(2),st
+02C8    D9 C9                     fxch      st(1)
+02CA    DC 3D 00 00 00 00         fdivr     qword ptr L$16
+02D0    8B 44 24 0C               mov       eax,[esp+0xc]
+02D4    8B 51 0C                  mov       edx,[ecx+0xc]
+02D7    8B 40 0C                  mov       eax,[eax+0xc]
+02DA    29 D0                     sub       eax,edx
+02DC    89 44 24 18               mov       [esp+0x18],eax
+02E0    DB 44 24 18               fild      dword ptr [esp+0x18]
+02E4    8B 44 24 08               mov       eax,[esp+0x8]
+02E8    DE CB                     fmulp     st(3),st
+02EA    8B 40 0C                  mov       eax,[eax+0xc]
+02ED    29 D0                     sub       eax,edx
+02EF    89 44 24 18               mov       [esp+0x18],eax
+02F3    DB 44 24 18               fild      dword ptr [esp+0x18]
+02F7    DE CA                     fmulp     st(2),st
+02F9    D9 C9                     fxch      st(1)
+02FB    DE EA                     fsubp     st(2),st
+02FD    D9 1D 14 00 00 00         fstp      dword ptr L$22
+0303    D8 0D 14 00 00 00         fmul      dword ptr L$22
+0309    DF 3D 00 00 00 00         fistp     qword ptr _if_tmp
+030F    A1 00 00 00 00            mov       eax,_if_tmp
+0314    A3 5C 00 00 00            mov       L$38,eax
+0319    8B 44 24 08               mov       eax,[esp+0x8]
+031D    8B 79 0C                  mov       edi,[ecx+0xc]
+0320    8B 40 0C                  mov       eax,[eax+0xc]
+0323    29 F8                     sub       eax,edi
+0325    89 44 24 1C               mov       [esp+0x1c],eax
+0329    8B 44 24 0C               mov       eax,[esp+0xc]
+032D    8B 29                     mov       ebp,[ecx]
+032F    8B 00                     mov       eax,[eax]
+0331    29 E8                     sub       eax,ebp
+0333    89 44 24 18               mov       [esp+0x18],eax
+0337    8B 44 24 0C               mov       eax,[esp+0xc]
+033B    8B 40 0C                  mov       eax,[eax+0xc]
+033E    DB 44 24 1C               fild      dword ptr [esp+0x1c]
+0342    29 F8                     sub       eax,edi
+0344    DB 44 24 18               fild      dword ptr [esp+0x18]
+0348    89 44 24 1C               mov       [esp+0x1c],eax
+034C    8B 44 24 08               mov       eax,[esp+0x8]
+0350    DE C9                     fmulp     st(1),st
+0352    8B 00                     mov       eax,[eax]
+0354    29 E8                     sub       eax,ebp
+0356    89 44 24 18               mov       [esp+0x18],eax
+035A    DB 44 24 1C               fild      dword ptr [esp+0x1c]
+035E    DB 44 24 18               fild      dword ptr [esp+0x18]
+0362    DE C9                     fmulp     st(1),st
+0364    DE E9                     fsubp     st(1),st
+0366    D8 0D 14 00 00 00         fmul      dword ptr L$22
+036C    DF 3D 00 00 00 00         fistp     qword ptr _if_tmp
+0372    A1 00 00 00 00            mov       eax,_if_tmp
+0377    A3 60 00 00 00            mov       L$39,eax
+037C    A1 5C 00 00 00            mov       eax,L$38
+0381    89 C3                     mov       ebx,eax
+0383    89 C2                     mov       edx,eax
+0385    C1 FB 03                  sar       ebx,0x00000003
+0388    C1 FA 02                  sar       edx,0x00000002
+038B    81 E3 FF 07 00 00         and       ebx,0x000007ff
+0391    81 E2 00 10 00 00         and       edx,0x00001000
+0397    09 D3                     or        ebx,edx
+0399    89 C2                     mov       edx,eax
+039B    D1 FA                     sar       edx,0x00000001
+039D    81 E2 00 40 00 00         and       edx,0x00004000
+03A3    09 D3                     or        ebx,edx
+03A5    89 C2                     mov       edx,eax
+03A7    81 E2 00 00 01 00         and       edx,0x00010000
+03AD    09 D3                     or        ebx,edx
+03AF    8D 14 00                  lea       edx,[eax+eax]
+03B2    81 E2 00 00 04 00         and       edx,0x00040000
+03B8    09 D3                     or        ebx,edx
+03BA    8D 14 85 00 00 00 00      lea       edx,[eax*4]
+03C1    81 E2 00 00 10 00         and       edx,0x00100000
+03C7    09 D3                     or        ebx,edx
+03C9    8D 14 C5 00 00 00 00      lea       edx,[eax*8]
+03D0    81 E2 00 00 40 00         and       edx,0x00400000
+03D6    09 D3                     or        ebx,edx
+03D8    89 C2                     mov       edx,eax
+03DA    C1 E2 04                  shl       edx,0x00000004
+03DD    81 E2 00 00 00 01         and       edx,0x01000000
+03E3    09 D3                     or        ebx,edx
+03E5    89 C2                     mov       edx,eax
+03E7    C1 E2 05                  shl       edx,0x00000005
+03EA    81 E2 00 00 00 04         and       edx,0x04000000
+03F0    09 D3                     or        ebx,edx
+03F2    89 C2                     mov       edx,eax
+03F4    C1 E2 06                  shl       edx,0x00000006
+03F7    C1 E0 07                  shl       eax,0x00000007
+03FA    81 E2 00 00 00 10         and       edx,0x10000000
+0400    25 00 00 00 40            and       eax,0x40000000
+0405    09 DA                     or        edx,ebx
+0407    09 C2                     or        edx,eax
+0409    8B 44 24 0C               mov       eax,[esp+0xc]
+040D    8B 79 10                  mov       edi,[ecx+0x10]
+0410    8B 40 10                  mov       eax,[eax+0x10]
+0413    29 F8                     sub       eax,edi
+0415    89 44 24 1C               mov       [esp+0x1c],eax
+0419    8B 44 24 08               mov       eax,[esp+0x8]
+041D    8B 69 04                  mov       ebp,[ecx+0x4]
+0420    8B 40 04                  mov       eax,[eax+0x4]
+0423    29 E8                     sub       eax,ebp
+0425    89 44 24 18               mov       [esp+0x18],eax
+0429    8B 44 24 08               mov       eax,[esp+0x8]
+042D    8B 40 10                  mov       eax,[eax+0x10]
+0430    DB 44 24 1C               fild      dword ptr [esp+0x1c]
+0434    29 F8                     sub       eax,edi
+0436    DB 44 24 18               fild      dword ptr [esp+0x18]
+043A    89 44 24 1C               mov       [esp+0x1c],eax
+043E    8B 44 24 0C               mov       eax,[esp+0xc]
+0442    DE C9                     fmulp     st(1),st
+0444    8B 40 04                  mov       eax,[eax+0x4]
+0447    29 E8                     sub       eax,ebp
+0449    89 44 24 18               mov       [esp+0x18],eax
+044D    DB 44 24 1C               fild      dword ptr [esp+0x1c]
+0451    DB 44 24 18               fild      dword ptr [esp+0x18]
+0455    DE C9                     fmulp     st(1),st
+0457    DE E9                     fsubp     st(1),st
+0459    81 CA 00 A8 AA AA         or        edx,0xaaaaa800
+045F    D8 0D 14 00 00 00         fmul      dword ptr L$22
+0465    89 15 64 00 00 00         mov       L$40,edx
+046B    DF 3D 00 00 00 00         fistp     qword ptr _if_tmp
+0471    A1 00 00 00 00            mov       eax,_if_tmp
+0476    A3 74 00 00 00            mov       L$43,eax
+047B    8B 44 24 08               mov       eax,[esp+0x8]
+047F    8B 79 10                  mov       edi,[ecx+0x10]
+0482    8B 40 10                  mov       eax,[eax+0x10]
+0485    29 F8                     sub       eax,edi
+0487    89 44 24 1C               mov       [esp+0x1c],eax
+048B    8B 44 24 0C               mov       eax,[esp+0xc]
+048F    8B 29                     mov       ebp,[ecx]
+0491    8B 00                     mov       eax,[eax]
+0493    29 E8                     sub       eax,ebp
+0495    89 44 24 18               mov       [esp+0x18],eax
+0499    8B 44 24 0C               mov       eax,[esp+0xc]
+049D    8B 40 10                  mov       eax,[eax+0x10]
+04A0    DB 44 24 1C               fild      dword ptr [esp+0x1c]
+04A4    29 F8                     sub       eax,edi
+04A6    DB 44 24 18               fild      dword ptr [esp+0x18]
+04AA    89 44 24 1C               mov       [esp+0x1c],eax
+04AE    8B 44 24 08               mov       eax,[esp+0x8]
+04B2    DE C9                     fmulp     st(1),st
+04B4    8B 00                     mov       eax,[eax]
+04B6    29 E8                     sub       eax,ebp
+04B8    89 44 24 18               mov       [esp+0x18],eax
+04BC    DB 44 24 1C               fild      dword ptr [esp+0x1c]
+04C0    DB 44 24 18               fild      dword ptr [esp+0x18]
+04C4    DE C9                     fmulp     st(1),st
+04C6    DE E9                     fsubp     st(1),st
+04C8    D8 0D 14 00 00 00         fmul      dword ptr L$22
+04CE    DF 3D 00 00 00 00         fistp     qword ptr _if_tmp
+04D4    A1 00 00 00 00            mov       eax,_if_tmp
+04D9    A3 78 00 00 00            mov       L$44,eax
+04DE    A1 74 00 00 00            mov       eax,L$43
+04E3    89 C3                     mov       ebx,eax
+04E5    89 C2                     mov       edx,eax
+04E7    C1 FB 03                  sar       ebx,0x00000003
+04EA    D1 FA                     sar       edx,0x00000001
+04EC    81 E3 FF 07 00 00         and       ebx,0x000007ff
+04F2    81 E2 00 20 00 00         and       edx,0x00002000
+04F8    09 D3                     or        ebx,edx
+04FA    89 C2                     mov       edx,eax
+04FC    81 E2 00 80 00 00         and       edx,0x00008000
+0502    09 D3                     or        ebx,edx
+0504    8D 14 00                  lea       edx,[eax+eax]
+0507    81 E2 00 00 02 00         and       edx,0x00020000
+050D    09 DA                     or        edx,ebx
+050F    8D 1C 85 00 00 00 00      lea       ebx,[eax*4]
+0516    81 E3 00 00 08 00         and       ebx,0x00080000
+051C    09 DA                     or        edx,ebx
+051E    8D 1C C5 00 00 00 00      lea       ebx,[eax*8]
+0525    81 E3 00 00 20 00         and       ebx,0x00200000
+052B    09 D3                     or        ebx,edx
+052D    89 C2                     mov       edx,eax
+052F    C1 E2 04                  shl       edx,0x00000004
+0532    81 E2 00 00 80 00         and       edx,0x00800000
+0538    09 DA                     or        edx,ebx
+053A    89 C3                     mov       ebx,eax
+053C    C1 E3 05                  shl       ebx,0x00000005
+053F    81 E3 00 00 00 02         and       ebx,0x02000000
+0545    09 D3                     or        ebx,edx
+0547    89 C2                     mov       edx,eax
+0549    C1 E2 06                  shl       edx,0x00000006
+054C    81 E2 00 00 00 08         and       edx,0x08000000
+0552    09 D3                     or        ebx,edx
+0554    89 C2                     mov       edx,eax
+0556    C1 E2 07                  shl       edx,0x00000007
+0559    C1 E0 08                  shl       eax,0x00000008
+055C    81 E2 00 00 00 20         and       edx,0x20000000
+0562    25 00 00 00 80            and       eax,0x80000000
+0567    09 DA                     or        edx,ebx
+0569    09 D0                     or        eax,edx
+056B    0D 00 58 55 55            or        eax,0x55555800
+0570    A3 7C 00 00 00            mov       L$45,eax
+0575    8B 44 24 0C               mov       eax,[esp+0xc]
+0579    8B 79 08                  mov       edi,[ecx+0x8]
+057C    8B 40 08                  mov       eax,[eax+0x8]
+057F    29 F8                     sub       eax,edi
+0581    89 44 24 1C               mov       [esp+0x1c],eax
+0585    8B 44 24 08               mov       eax,[esp+0x8]
+0589    8B 69 04                  mov       ebp,[ecx+0x4]
+058C    8B 40 04                  mov       eax,[eax+0x4]
+058F    29 E8                     sub       eax,ebp
+0591    89 44 24 18               mov       [esp+0x18],eax
+0595    8B 44 24 08               mov       eax,[esp+0x8]
+0599    8B 40 08                  mov       eax,[eax+0x8]
+059C    DB 44 24 1C               fild      dword ptr [esp+0x1c]
+05A0    29 F8                     sub       eax,edi
+05A2    DB 44 24 18               fild      dword ptr [esp+0x18]
+05A6    89 44 24 1C               mov       [esp+0x1c],eax
+05AA    8B 44 24 0C               mov       eax,[esp+0xc]
+05AE    DE C9                     fmulp     st(1),st
+05B0    8B 40 04                  mov       eax,[eax+0x4]
+05B3    29 E8                     sub       eax,ebp
+05B5    89 44 24 18               mov       [esp+0x18],eax
+05B9    DB 44 24 1C               fild      dword ptr [esp+0x1c]
+05BD    DB 44 24 18               fild      dword ptr [esp+0x18]
+05C1    DE C9                     fmulp     st(1),st
+05C3    DE E9                     fsubp     st(1),st
+05C5    D8 0D 14 00 00 00         fmul      dword ptr L$22
+05CB    DF 3D 00 00 00 00         fistp     qword ptr _if_tmp
+05D1    A1 00 00 00 00            mov       eax,_if_tmp
+05D6    A3 8C 00 00 00            mov       L$48,eax
+05DB    8B 44 24 08               mov       eax,[esp+0x8]
+05DF    8B 79 08                  mov       edi,[ecx+0x8]
+05E2    8B 40 08                  mov       eax,[eax+0x8]
+05E5    29 F8                     sub       eax,edi
+05E7    89 44 24 1C               mov       [esp+0x1c],eax
+05EB    8B 44 24 0C               mov       eax,[esp+0xc]
+05EF    8B 29                     mov       ebp,[ecx]
+05F1    8B 00                     mov       eax,[eax]
+05F3    29 E8                     sub       eax,ebp
+05F5    89 44 24 18               mov       [esp+0x18],eax
+05F9    8B 44 24 0C               mov       eax,[esp+0xc]
+05FD    8B 40 08                  mov       eax,[eax+0x8]
+0600    DB 44 24 1C               fild      dword ptr [esp+0x1c]
+0604    29 F8                     sub       eax,edi
+0606    DB 44 24 18               fild      dword ptr [esp+0x18]
+060A    89 44 24 18               mov       [esp+0x18],eax
+060E    8B 44 24 08               mov       eax,[esp+0x8]
+0612    DE C9                     fmulp     st(1),st
+0614    8B 00                     mov       eax,[eax]
+0616    29 E8                     sub       eax,ebp
+0618    89 44 24 1C               mov       [esp+0x1c],eax
+061C    DB 44 24 18               fild      dword ptr [esp+0x18]
+0620    DB 44 24 1C               fild      dword ptr [esp+0x1c]
+0624    DE C9                     fmulp     st(1),st
+0626    DE E9                     fsubp     st(1),st
+0628    D8 0D 14 00 00 00         fmul      dword ptr L$22
+062E    DF 3D 00 00 00 00         fistp     qword ptr _if_tmp
+0634    A1 00 00 00 00            mov       eax,_if_tmp
+0639    A3 90 00 00 00            mov       L$49,eax
+063E    8B 79 04                  mov       edi,[ecx+0x4]
+0641    A1 8C 00 00 00            mov       eax,L$48
+0646    81 E7 FF 0F 00 00         and       edi,0x00000fff
+064C    A3 94 00 00 00            mov       L$50,eax
+0651    B8 00 10 00 00            mov       eax,0x00001000
+0656    29 F8                     sub       eax,edi
+0658    8B 54 24 04               mov       edx,[esp+0x4]
+065C    89 C7                     mov       edi,eax
+065E    89 F0                     mov       eax,esi
+0660    39 D0                     cmp       eax,edx
+0662    19 DB                     sbb       ebx,ebx
+0664    39 C2                     cmp       edx,eax
+0666    83 DB 00                  sbb       ebx,0x00000000
+0669    21 FB                     and       ebx,edi
+066B    89 5C 24 1C               mov       [esp+0x1c],ebx
+066F    DB 44 24 1C               fild      dword ptr [esp+0x1c]
+0673    D8 0D 08 00 00 00         fmul      dword ptr L$19
+0679    DB 01                     fild      dword ptr [ecx]
+067B    DE C1                     faddp     st(1),st
+067D    DC 0D 08 00 00 00         fmul      qword ptr L$17
+0683    A1 4C 00 00 00            mov       eax,L$35
+0688    DF 38                     fistp     qword ptr [eax]
+068A    D9 05 08 00 00 00         fld       dword ptr L$19
+0690    A1 4C 00 00 00            mov       eax,L$35
+0695    DC 0D 10 00 00 00         fmul      qword ptr L$18
+069B    83 C0 08                  add       eax,0x00000008
+069E    DF 38                     fistp     qword ptr [eax]
+06A0    A1 4C 00 00 00            mov       eax,L$35
+06A5    8B 50 0C                  mov       edx,[eax+0xc]
+06A8    81 C2 00 01 00 00         add       edx,0x00000100
+06AE    81 E2 FF 01 00 00         and       edx,0x000001ff
+06B4    83 C2 40                  add       edx,0x00000040
+06B7    89 50 10                  mov       [eax+0x10],edx
+06BA    8B 14 24                  mov       edx,[esp]
+06BD    89 F0                     mov       eax,esi
+06BF    39 D0                     cmp       eax,edx
+06C1    19 DB                     sbb       ebx,ebx
+06C3    39 C2                     cmp       edx,eax
+06C5    83 DB 00                  sbb       ebx,0x00000000
+06C8    21 FB                     and       ebx,edi
+06CA    89 5C 24 1C               mov       [esp+0x1c],ebx
+06CE    DB 44 24 1C               fild      dword ptr [esp+0x1c]
+06D2    D8 0D 0C 00 00 00         fmul      dword ptr L$20
+06D8    DB 01                     fild      dword ptr [ecx]
+06DA    DE C1                     faddp     st(1),st
+06DC    DC 0D 08 00 00 00         fmul      qword ptr L$17
+06E2    A1 50 00 00 00            mov       eax,L$36
+06E7    DF 38                     fistp     qword ptr [eax]
+06E9    D9 05 0C 00 00 00         fld       dword ptr L$20
+06EF    A1 50 00 00 00            mov       eax,L$36
+06F4    DC 0D 10 00 00 00         fmul      qword ptr L$18
+06FA    83 C0 08                  add       eax,0x00000008
+06FD    DF 38                     fistp     qword ptr [eax]
+06FF    8B 15 50 00 00 00         mov       edx,L$36
+0705    8B 42 0C                  mov       eax,[edx+0xc]
+0708    05 00 01 00 00            add       eax,0x00000100
+070D    25 FF 01 00 00            and       eax,0x000001ff
+0712    83 C0 40                  add       eax,0x00000040
+0715    89 42 10                  mov       [edx+0x10],eax
+0718    8B 1D 28 00 00 00         mov       ebx,L$27
+071E    43                        inc       ebx
+071F    8B 29                     mov       ebp,[ecx]
+0721    C1 E3 0C                  shl       ebx,0x0000000c
+0724    A1 5C 00 00 00            mov       eax,L$38
+0729    29 EB                     sub       ebx,ebp
+072B    C1 F8 04                  sar       eax,0x00000004
+072E    89 DD                     mov       ebp,ebx
+0730    0F AF E8                  imul      ebp,eax
+0733    A1 60 00 00 00            mov       eax,L$39
+0738    C1 F8 04                  sar       eax,0x00000004
+073B    0F AF C7                  imul      eax,edi
+073E    01 E8                     add       eax,ebp
+0740    C1 F8 08                  sar       eax,0x00000008
+0743    03 41 0C                  add       eax,[ecx+0xc]
+0746    89 C5                     mov       ebp,eax
+0748    C1 FD 03                  sar       ebp,0x00000003
+074B    81 E5 FF 07 00 00         and       ebp,0x000007ff
+0751    89 6C 24 1C               mov       [esp+0x1c],ebp
+0755    89 C5                     mov       ebp,eax
+0757    C1 FD 02                  sar       ebp,0x00000002
+075A    81 E5 00 10 00 00         and       ebp,0x00001000
+0760    89 6C 24 18               mov       [esp+0x18],ebp
+0764    8B 6C 24 1C               mov       ebp,[esp+0x1c]
+0768    0B 6C 24 18               or        ebp,[esp+0x18]
+076C    89 6C 24 1C               mov       [esp+0x1c],ebp
+0770    89 C5                     mov       ebp,eax
+0772    D1 FD                     sar       ebp,0x00000001
+0774    81 E5 00 40 00 00         and       ebp,0x00004000
+077A    89 6C 24 18               mov       [esp+0x18],ebp
+077E    8B 6C 24 1C               mov       ebp,[esp+0x1c]
+0782    0B 6C 24 18               or        ebp,[esp+0x18]
+0786    89 6C 24 1C               mov       [esp+0x1c],ebp
+078A    89 C5                     mov       ebp,eax
+078C    81 E5 00 00 01 00         and       ebp,0x00010000
+0792    89 6C 24 18               mov       [esp+0x18],ebp
+0796    8B 6C 24 1C               mov       ebp,[esp+0x1c]
+079A    0B 6C 24 18               or        ebp,[esp+0x18]
+079E    89 6C 24 1C               mov       [esp+0x1c],ebp
+07A2    8D 2C 00                  lea       ebp,[eax+eax]
+07A5    81 E5 00 00 04 00         and       ebp,0x00040000
+07AB    89 6C 24 18               mov       [esp+0x18],ebp
+07AF    8B 6C 24 1C               mov       ebp,[esp+0x1c]
+07B3    0B 6C 24 18               or        ebp,[esp+0x18]
+07B7    89 6C 24 1C               mov       [esp+0x1c],ebp
+07BB    8D 2C 85 00 00 00 00      lea       ebp,[eax*4]
+07C2    81 E5 00 00 10 00         and       ebp,0x00100000
+07C8    89 6C 24 18               mov       [esp+0x18],ebp
+07CC    8B 6C 24 1C               mov       ebp,[esp+0x1c]
+07D0    0B 6C 24 18               or        ebp,[esp+0x18]
+07D4    89 6C 24 1C               mov       [esp+0x1c],ebp
+07D8    8D 2C C5 00 00 00 00      lea       ebp,[eax*8]
+07DF    81 E5 00 00 40 00         and       ebp,0x00400000
+07E5    89 6C 24 18               mov       [esp+0x18],ebp
+07E9    8B 6C 24 1C               mov       ebp,[esp+0x1c]
+07ED    0B 6C 24 18               or        ebp,[esp+0x18]
+07F1    89 6C 24 1C               mov       [esp+0x1c],ebp
+07F5    89 C5                     mov       ebp,eax
+07F7    C1 E5 04                  shl       ebp,0x00000004
+07FA    81 E5 00 00 00 01         and       ebp,0x01000000
+0800    89 6C 24 18               mov       [esp+0x18],ebp
+0804    8B 6C 24 1C               mov       ebp,[esp+0x1c]
+0808    0B 6C 24 18               or        ebp,[esp+0x18]
+080C    89 6C 24 1C               mov       [esp+0x1c],ebp
+0810    89 C5                     mov       ebp,eax
+0812    C1 E5 05                  shl       ebp,0x00000005
+0815    81 E5 00 00 00 04         and       ebp,0x04000000
+081B    89 6C 24 18               mov       [esp+0x18],ebp
+081F    8B 6C 24 1C               mov       ebp,[esp+0x1c]
+0823    0B 6C 24 18               or        ebp,[esp+0x18]
+0827    89 6C 24 1C               mov       [esp+0x1c],ebp
+082B    89 C5                     mov       ebp,eax
+082D    C1 E5 06                  shl       ebp,0x00000006
+0830    81 E5 00 00 00 10         and       ebp,0x10000000
+0836    89 6C 24 18               mov       [esp+0x18],ebp
+083A    8B 6C 24 1C               mov       ebp,[esp+0x1c]
+083E    C1 E0 07                  shl       eax,0x00000007
+0841    0B 6C 24 18               or        ebp,[esp+0x18]
+0845    25 00 00 00 40            and       eax,0x40000000
+084A    09 E8                     or        eax,ebp
+084C    8B 2D 30 00 00 00         mov       ebp,L$29
+0852    A3 58 00 00 00            mov       L$37,eax
+0857    A1 5C 00 00 00            mov       eax,L$38
+085C    0F AF C5                  imul      eax,ebp
+085F    8B 2D 60 00 00 00         mov       ebp,L$39
+0865    01 E8                     add       eax,ebp
+0867    89 C5                     mov       ebp,eax
+0869    C1 FD 03                  sar       ebp,0x00000003
+086C    81 E5 FF 07 00 00         and       ebp,0x000007ff
+0872    89 6C 24 1C               mov       [esp+0x1c],ebp
+0876    89 C5                     mov       ebp,eax
+0878    C1 FD 02                  sar       ebp,0x00000002
+087B    81 E5 00 10 00 00         and       ebp,0x00001000
+0881    89 6C 24 18               mov       [esp+0x18],ebp
+0885    8B 6C 24 1C               mov       ebp,[esp+0x1c]
+0889    0B 6C 24 18               or        ebp,[esp+0x18]
+088D    89 6C 24 1C               mov       [esp+0x1c],ebp
+0891    89 C5                     mov       ebp,eax
+0893    D1 FD                     sar       ebp,0x00000001
+0895    81 E5 00 40 00 00         and       ebp,0x00004000
+089B    89 6C 24 18               mov       [esp+0x18],ebp
+089F    8B 6C 24 1C               mov       ebp,[esp+0x1c]
+08A3    0B 6C 24 18               or        ebp,[esp+0x18]
+08A7    89 6C 24 1C               mov       [esp+0x1c],ebp
+08AB    89 C5                     mov       ebp,eax
+08AD    81 E5 00 00 01 00         and       ebp,0x00010000
+08B3    89 6C 24 18               mov       [esp+0x18],ebp
+08B7    8B 6C 24 1C               mov       ebp,[esp+0x1c]
+08BB    0B 6C 24 18               or        ebp,[esp+0x18]
+08BF    89 6C 24 1C               mov       [esp+0x1c],ebp
+08C3    8D 2C 00                  lea       ebp,[eax+eax]
+08C6    81 E5 00 00 04 00         and       ebp,0x00040000
+08CC    89 6C 24 18               mov       [esp+0x18],ebp
+08D0    8B 6C 24 1C               mov       ebp,[esp+0x1c]
+08D4    0B 6C 24 18               or        ebp,[esp+0x18]
+08D8    89 6C 24 1C               mov       [esp+0x1c],ebp
+08DC    8D 2C 85 00 00 00 00      lea       ebp,[eax*4]
+08E3    81 E5 00 00 10 00         and       ebp,0x00100000
+08E9    89 6C 24 18               mov       [esp+0x18],ebp
+08ED    8B 6C 24 1C               mov       ebp,[esp+0x1c]
+08F1    0B 6C 24 18               or        ebp,[esp+0x18]
+08F5    89 6C 24 1C               mov       [esp+0x1c],ebp
+08F9    8D 2C C5 00 00 00 00      lea       ebp,[eax*8]
+0900    81 E5 00 00 40 00         and       ebp,0x00400000
+0906    89 6C 24 18               mov       [esp+0x18],ebp
+090A    8B 6C 24 1C               mov       ebp,[esp+0x1c]
+090E    0B 6C 24 18               or        ebp,[esp+0x18]
+0912    89 6C 24 1C               mov       [esp+0x1c],ebp
+0916    89 C5                     mov       ebp,eax
+0918    C1 E5 04                  shl       ebp,0x00000004
+091B    81 E5 00 00 00 01         and       ebp,0x01000000
+0921    89 6C 24 18               mov       [esp+0x18],ebp
+0925    8B 6C 24 1C               mov       ebp,[esp+0x1c]
+0929    0B 6C 24 18               or        ebp,[esp+0x18]
+092D    89 6C 24 1C               mov       [esp+0x1c],ebp
+0931    89 C5                     mov       ebp,eax
+0933    C1 E5 05                  shl       ebp,0x00000005
+0936    81 E5 00 00 00 04         and       ebp,0x04000000
+093C    89 6C 24 18               mov       [esp+0x18],ebp
+0940    8B 6C 24 1C               mov       ebp,[esp+0x1c]
+0944    0B 6C 24 18               or        ebp,[esp+0x18]
+0948    89 6C 24 1C               mov       [esp+0x1c],ebp
+094C    89 C5                     mov       ebp,eax
+094E    C1 E5 06                  shl       ebp,0x00000006
+0951    81 E5 00 00 00 10         and       ebp,0x10000000
+0957    C1 E0 07                  shl       eax,0x00000007
+095A    89 6C 24 18               mov       [esp+0x18],ebp
+095E    8B 6C 24 1C               mov       ebp,[esp+0x1c]
+0962    25 00 00 00 40            and       eax,0x40000000
+0967    0B 6C 24 18               or        ebp,[esp+0x18]
+096B    09 E8                     or        eax,ebp
+096D    0D 00 A8 AA AA            or        eax,0xaaaaa800
+0972    A3 68 00 00 00            mov       L$41,eax
+0977    A1 74 00 00 00            mov       eax,L$43
+097C    89 DD                     mov       ebp,ebx
+097E    C1 F8 04                  sar       eax,0x00000004
+0981    0F AF E8                  imul      ebp,eax
+0984    A1 78 00 00 00            mov       eax,L$44
+0989    C1 F8 04                  sar       eax,0x00000004
+098C    0F AF C7                  imul      eax,edi
+098F    01 E8                     add       eax,ebp
+0991    C1 F8 08                  sar       eax,0x00000008
+0994    03 41 10                  add       eax,[ecx+0x10]
+0997    89 C5                     mov       ebp,eax
+0999    C1 FD 03                  sar       ebp,0x00000003
+099C    81 E5 FF 07 00 00         and       ebp,0x000007ff
+09A2    89 6C 24 1C               mov       [esp+0x1c],ebp
+09A6    89 C5                     mov       ebp,eax
+09A8    D1 FD                     sar       ebp,0x00000001
+09AA    81 E5 00 20 00 00         and       ebp,0x00002000
+09B0    89 6C 24 18               mov       [esp+0x18],ebp
+09B4    8B 6C 24 1C               mov       ebp,[esp+0x1c]
+09B8    0B 6C 24 18               or        ebp,[esp+0x18]
+09BC    89 6C 24 1C               mov       [esp+0x1c],ebp
+09C0    89 C5                     mov       ebp,eax
+09C2    81 E5 00 80 00 00         and       ebp,0x00008000
+09C8    89 6C 24 18               mov       [esp+0x18],ebp
+09CC    8B 6C 24 1C               mov       ebp,[esp+0x1c]
+09D0    0B 6C 24 18               or        ebp,[esp+0x18]
+09D4    89 6C 24 1C               mov       [esp+0x1c],ebp
+09D8    8D 2C 00                  lea       ebp,[eax+eax]
+09DB    81 E5 00 00 02 00         and       ebp,0x00020000
+09E1    89 6C 24 18               mov       [esp+0x18],ebp
+09E5    8B 6C 24 1C               mov       ebp,[esp+0x1c]
+09E9    0B 6C 24 18               or        ebp,[esp+0x18]
+09ED    89 6C 24 1C               mov       [esp+0x1c],ebp
+09F1    8D 2C 85 00 00 00 00      lea       ebp,[eax*4]
+09F8    81 E5 00 00 08 00         and       ebp,0x00080000
+09FE    89 6C 24 18               mov       [esp+0x18],ebp
+0A02    8B 6C 24 1C               mov       ebp,[esp+0x1c]
+0A06    0B 6C 24 18               or        ebp,[esp+0x18]
+0A0A    89 6C 24 1C               mov       [esp+0x1c],ebp
+0A0E    8D 2C C5 00 00 00 00      lea       ebp,[eax*8]
+0A15    81 E5 00 00 20 00         and       ebp,0x00200000
+0A1B    89 6C 24 18               mov       [esp+0x18],ebp
+0A1F    8B 6C 24 1C               mov       ebp,[esp+0x1c]
+0A23    0B 6C 24 18               or        ebp,[esp+0x18]
+0A27    89 6C 24 1C               mov       [esp+0x1c],ebp
+0A2B    89 C5                     mov       ebp,eax
+0A2D    C1 E5 04                  shl       ebp,0x00000004
+0A30    81 E5 00 00 80 00         and       ebp,0x00800000
+0A36    89 6C 24 18               mov       [esp+0x18],ebp
+0A3A    8B 6C 24 1C               mov       ebp,[esp+0x1c]
+0A3E    0B 6C 24 18               or        ebp,[esp+0x18]
+0A42    89 6C 24 1C               mov       [esp+0x1c],ebp
+0A46    89 C5                     mov       ebp,eax
+0A48    C1 E5 05                  shl       ebp,0x00000005
+0A4B    81 E5 00 00 00 02         and       ebp,0x02000000
+0A51    89 6C 24 18               mov       [esp+0x18],ebp
+0A55    8B 6C 24 1C               mov       ebp,[esp+0x1c]
+0A59    0B 6C 24 18               or        ebp,[esp+0x18]
+0A5D    89 6C 24 1C               mov       [esp+0x1c],ebp
+0A61    89 C5                     mov       ebp,eax
+0A63    C1 E5 06                  shl       ebp,0x00000006
+0A66    81 E5 00 00 00 08         and       ebp,0x08000000
+0A6C    89 6C 24 18               mov       [esp+0x18],ebp
+0A70    8B 6C 24 1C               mov       ebp,[esp+0x1c]
+0A74    0B 6C 24 18               or        ebp,[esp+0x18]
+0A78    89 6C 24 1C               mov       [esp+0x1c],ebp
+0A7C    89 C5                     mov       ebp,eax
+0A7E    C1 E5 07                  shl       ebp,0x00000007
+0A81    81 E5 00 00 00 20         and       ebp,0x20000000
+0A87    89 6C 24 18               mov       [esp+0x18],ebp
+0A8B    8B 6C 24 1C               mov       ebp,[esp+0x1c]
+0A8F    C1 E0 08                  shl       eax,0x00000008
+0A92    0B 6C 24 18               or        ebp,[esp+0x18]
+0A96    25 00 00 00 80            and       eax,0x80000000
+0A9B    09 E8                     or        eax,ebp
+0A9D    8B 2D 30 00 00 00         mov       ebp,L$29
+0AA3    A3 70 00 00 00            mov       L$42,eax
+0AA8    A1 74 00 00 00            mov       eax,L$43
+0AAD    0F AF C5                  imul      eax,ebp
+0AB0    03 05 78 00 00 00         add       eax,L$44
+0AB6    89 C5                     mov       ebp,eax
+0AB8    C1 FD 03                  sar       ebp,0x00000003
+0ABB    81 E5 FF 07 00 00         and       ebp,0x000007ff
+0AC1    89 6C 24 1C               mov       [esp+0x1c],ebp
+0AC5    89 C5                     mov       ebp,eax
+0AC7    D1 FD                     sar       ebp,0x00000001
+0AC9    81 E5 00 20 00 00         and       ebp,0x00002000
+0ACF    89 6C 24 18               mov       [esp+0x18],ebp
+0AD3    8B 6C 24 1C               mov       ebp,[esp+0x1c]
+0AD7    0B 6C 24 18               or        ebp,[esp+0x18]
+0ADB    89 6C 24 1C               mov       [esp+0x1c],ebp
+0ADF    89 C5                     mov       ebp,eax
+0AE1    81 E5 00 80 00 00         and       ebp,0x00008000
+0AE7    89 6C 24 18               mov       [esp+0x18],ebp
+0AEB    8B 6C 24 1C               mov       ebp,[esp+0x1c]
+0AEF    0B 6C 24 18               or        ebp,[esp+0x18]
+0AF3    89 6C 24 1C               mov       [esp+0x1c],ebp
+0AF7    8D 2C 00                  lea       ebp,[eax+eax]
+0AFA    81 E5 00 00 02 00         and       ebp,0x00020000
+0B00    89 6C 24 18               mov       [esp+0x18],ebp
+0B04    8B 6C 24 1C               mov       ebp,[esp+0x1c]
+0B08    0B 6C 24 18               or        ebp,[esp+0x18]
+0B0C    89 6C 24 1C               mov       [esp+0x1c],ebp
+0B10    8D 2C 85 00 00 00 00      lea       ebp,[eax*4]
+0B17    81 E5 00 00 08 00         and       ebp,0x00080000
+0B1D    89 6C 24 18               mov       [esp+0x18],ebp
+0B21    8B 6C 24 1C               mov       ebp,[esp+0x1c]
+0B25    0B 6C 24 18               or        ebp,[esp+0x18]
+0B29    89 6C 24 1C               mov       [esp+0x1c],ebp
+0B2D    8D 2C C5 00 00 00 00      lea       ebp,[eax*8]
+0B34    81 E5 00 00 20 00         and       ebp,0x00200000
+0B3A    89 6C 24 18               mov       [esp+0x18],ebp
+0B3E    8B 6C 24 1C               mov       ebp,[esp+0x1c]
+0B42    0B 6C 24 18               or        ebp,[esp+0x18]
+0B46    89 6C 24 1C               mov       [esp+0x1c],ebp
+0B4A    89 C5                     mov       ebp,eax
+0B4C    C1 E5 04                  shl       ebp,0x00000004
+0B4F    81 E5 00 00 80 00         and       ebp,0x00800000
+0B55    89 6C 24 18               mov       [esp+0x18],ebp
+0B59    8B 6C 24 1C               mov       ebp,[esp+0x1c]
+0B5D    0B 6C 24 18               or        ebp,[esp+0x18]
+0B61    89 6C 24 1C               mov       [esp+0x1c],ebp
+0B65    89 C5                     mov       ebp,eax
+0B67    C1 E5 05                  shl       ebp,0x00000005
+0B6A    81 E5 00 00 00 02         and       ebp,0x02000000
+0B70    89 6C 24 18               mov       [esp+0x18],ebp
+0B74    8B 6C 24 1C               mov       ebp,[esp+0x1c]
+0B78    0B 6C 24 18               or        ebp,[esp+0x18]
+0B7C    89 6C 24 1C               mov       [esp+0x1c],ebp
+0B80    89 C5                     mov       ebp,eax
+0B82    C1 E5 06                  shl       ebp,0x00000006
+0B85    81 E5 00 00 00 08         and       ebp,0x08000000
+0B8B    89 6C 24 18               mov       [esp+0x18],ebp
+0B8F    8B 6C 24 1C               mov       ebp,[esp+0x1c]
+0B93    0B 6C 24 18               or        ebp,[esp+0x18]
+0B97    89 6C 24 1C               mov       [esp+0x1c],ebp
+0B9B    89 C5                     mov       ebp,eax
+0B9D    C1 E5 07                  shl       ebp,0x00000007
+0BA0    81 E5 00 00 00 20         and       ebp,0x20000000
+0BA6    C1 E0 08                  shl       eax,0x00000008
+0BA9    89 6C 24 18               mov       [esp+0x18],ebp
+0BAD    8B 6C 24 1C               mov       ebp,[esp+0x1c]
+0BB1    25 00 00 00 80            and       eax,0x80000000
+0BB6    0B 6C 24 18               or        ebp,[esp+0x18]
+0BBA    09 E8                     or        eax,ebp
+0BBC    0D 00 58 55 55            or        eax,0x55555800
+0BC1    A3 80 00 00 00            mov       L$46,eax
+0BC6    A1 8C 00 00 00            mov       eax,L$48
+0BCB    C1 F8 08                  sar       eax,0x00000008
+0BCE    0F AF D8                  imul      ebx,eax
+0BD1    A1 90 00 00 00            mov       eax,L$49
+0BD6    C1 F8 08                  sar       eax,0x00000008
+0BD9    0F AF C7                  imul      eax,edi
+0BDC    01 D8                     add       eax,ebx
+0BDE    C1 F8 04                  sar       eax,0x00000004
+0BE1    8B 59 08                  mov       ebx,[ecx+0x8]
+0BE4    01 C3                     add       ebx,eax
+0BE6    A1 8C 00 00 00            mov       eax,L$48
+0BEB    89 1D 88 00 00 00         mov       L$47,ebx
+0BF1    0F AF 05 30 00 00 00      imul      eax,L$29
+0BF8    8B 1D 90 00 00 00         mov       ebx,L$49
+0BFE    01 C3                     add       ebx,eax
+0C00    A1 4C 00 00 00            mov       eax,L$35
+0C05    89 1D 98 00 00 00         mov       L$51,ebx
+0C0B    8B 58 04                  mov       ebx,[eax+0x4]
+0C0E    01 F3                     add       ebx,esi
+0C10    89 58 04                  mov       [eax+0x4],ebx
+0C13    8B 7A 04                  mov       edi,[edx+0x4]
+0C16    01 FE                     add       esi,edi
+0C18    89 72 04                  mov       [edx+0x4],esi
+0C1B    8B 44 24 0C               mov       eax,[esp+0xc]
+0C1F    8B 51 04                  mov       edx,[ecx+0x4]
+0C22    8B 40 04                  mov       eax,[eax+0x4]
+0C25    C1 FA 0C                  sar       edx,0x0000000c
+0C28    C1 F8 0C                  sar       eax,0x0000000c
+0C2B    29 C2                     sub       edx,eax
+0C2D    89 54 24 10               mov       [esp+0x10],edx
+0C31    85 D2                     test      edx,edx
+0C33    0F 8D 85 01 00 00         jge       L$9
+0C39                          L$5:
+0C39    8B 35 3C 00 00 00         mov       esi,L$32
+0C3F    A1 28 00 00 00            mov       eax,L$27
+0C44    39 F0                     cmp       eax,esi
+0C46    73 77                     jae       L$8
+0C48    8B 2D 00 00 00 00         mov       ebp,_dbuf
+0C4E    8B 35 00 00 00 00         mov       esi,_zbuf
+0C54    8B 15 88 00 00 00         mov       edx,L$47
+0C5A    89 C7                     mov       edi,eax
+0C5C    29 E8                     sub       eax,ebp
+0C5E    8B 0D 70 00 00 00         mov       ecx,L$42
+0C64    01 C0                     add       eax,eax
+0C66    8B 1D 58 00 00 00         mov       ebx,L$37
+0C6C    01 C6                     add       esi,eax
+0C6E    3B 3D 3C 00 00 00         cmp       edi,L$32
+0C74    73 49                     jae       L$8
+0C76                          L$6:
+0C76    81 E3 FF 57 55 55         and       ebx,0x555557ff
+0C7C    81 E1 FF A7 AA AA         and       ecx,0xaaaaa7ff
+0C82    89 DD                     mov       ebp,ebx
+0C84    89 D0                     mov       eax,edx
+0C86    C1 E8 0C                  shr       eax,0x0000000c
+0C89    01 CD                     add       ebp,ecx
+0C8B    C1 ED 0C                  shr       ebp,0x0000000c
+0C8E    03 1D 64 00 00 00         add       ebx,L$40
+0C94    03 0D 7C 00 00 00         add       ecx,L$45
+0C9A    03 2D 20 00 00 00         add       ebp,L$25
+0CA0    66 3B 06                  cmp       ax,[esi]
+0CA3    72 08                     jb        L$7
+0CA5    66 89 06                  mov       [esi],ax
+0CA8    8A 45 00                  mov       al,[ebp]
+0CAB    88 07                     mov       [edi],al
+0CAD                          L$7:
+0CAD    03 15 94 00 00 00         add       edx,L$50
+0CB3    47                        inc       edi
+0CB4    83 C6 02                  add       esi,0x00000002
+0CB7    3B 3D 3C 00 00 00         cmp       edi,L$32
+0CBD    72 B7                     jb        L$6
+0CBF                          L$8:
+0CBF    BB 24 00 00 00            mov       ebx,offset L$26
+0CC4    A1 2C 00 00 00            mov       eax,L$28
+0CC9    11 03                     adc       [ebx],eax
+0CCB    19 C0                     sbb       eax,eax
+0CCD    8B 15 34 00 00 00         mov       edx,L$30
+0CD3    8B 0D 28 00 00 00         mov       ecx,L$27
+0CD9    8B 1D 58 00 00 00         mov       ebx,L$37
+0CDF    8B 3D 70 00 00 00         mov       edi,L$42
+0CE5    29 C2                     sub       edx,eax
+0CE7    A3 18 00 00 00            mov       L$23,eax
+0CEC    01 D1                     add       ecx,edx
+0CEE    8B 15 64 00 00 00         mov       edx,L$40
+0CF4    89 0D 28 00 00 00         mov       L$27,ecx
+0CFA    21 C2                     and       edx,eax
+0CFC    8B 0D 98 00 00 00         mov       ecx,L$51
+0D02    01 D3                     add       ebx,edx
+0D04    8B 15 7C 00 00 00         mov       edx,L$45
+0D0A    89 1D 58 00 00 00         mov       L$37,ebx
+0D10    89 DE                     mov       esi,ebx
+0D12    8B 1D 88 00 00 00         mov       ebx,L$47
+0D18    81 E6 FF 57 55 55         and       esi,0x555557ff
+0D1E    21 C2                     and       edx,eax
+0D20    89 35 58 00 00 00         mov       L$37,esi
+0D26    01 D7                     add       edi,edx
+0D28    8B 15 94 00 00 00         mov       edx,L$50
+0D2E    89 3D 70 00 00 00         mov       L$42,edi
+0D34    89 FD                     mov       ebp,edi
+0D36    21 D0                     and       eax,edx
+0D38    81 E5 FF A7 AA AA         and       ebp,0xaaaaa7ff
+0D3E    01 C8                     add       eax,ecx
+0D40    89 2D 70 00 00 00         mov       L$42,ebp
+0D46    01 C3                     add       ebx,eax
+0D48    A1 68 00 00 00            mov       eax,L$41
+0D4D    89 1D 88 00 00 00         mov       L$47,ebx
+0D53    BB 38 00 00 00            mov       ebx,offset L$31
+0D58    01 C6                     add       esi,eax
+0D5A    A1 80 00 00 00            mov       eax,L$46
+0D5F    89 35 58 00 00 00         mov       L$37,esi
+0D65    01 C5                     add       ebp,eax
+0D67    89 F7                     mov       edi,esi
+0D69    89 E8                     mov       eax,ebp
+0D6B    89 2D 70 00 00 00         mov       L$42,ebp
+0D71    25 FF A7 AA AA            and       eax,0xaaaaa7ff
+0D76    81 E7 FF 57 55 55         and       edi,0x555557ff
+0D7C    A3 70 00 00 00            mov       L$42,eax
+0D81    A1 40 00 00 00            mov       eax,L$33
+0D86    89 3D 58 00 00 00         mov       L$37,edi
+0D8C    11 03                     adc       [ebx],eax
+0D8E    19 C0                     sbb       eax,eax
+0D90    8B 15 48 00 00 00         mov       edx,L$34
+0D96    8B 4C 24 10               mov       ecx,[esp+0x10]
+0D9A    29 C2                     sub       edx,eax
+0D9C    A3 18 00 00 00            mov       L$23,eax
+0DA1    89 D0                     mov       eax,edx
+0DA3    8B 15 3C 00 00 00         mov       edx,L$32
+0DA9    41                        inc       ecx
+0DAA    01 C2                     add       edx,eax
+0DAC    89 4C 24 10               mov       [esp+0x10],ecx
+0DB0    89 15 3C 00 00 00         mov       L$32,edx
+0DB6    85 C9                     test      ecx,ecx
+0DB8    0F 8C 7B FE FF FF         jl        L$5
+0DBE                          L$9:
+0DBE    8B 4C 24 0C               mov       ecx,[esp+0xc]
+0DC2    8B 49 04                  mov       ecx,[ecx+0x4]
+0DC5    B8 00 10 00 00            mov       eax,0x00001000
+0DCA    81 E1 FF 0F 00 00         and       ecx,0x00000fff
+0DD0    29 C8                     sub       eax,ecx
+0DD2    8B 14 24                  mov       edx,[esp]
+0DD5    89 C1                     mov       ecx,eax
+0DD7    8B 44 24 04               mov       eax,[esp+0x4]
+0DDB    39 D0                     cmp       eax,edx
+0DDD    19 DB                     sbb       ebx,ebx
+0DDF    39 C2                     cmp       edx,eax
+0DE1    83 DB 00                  sbb       ebx,0x00000000
+0DE4    21 CB                     and       ebx,ecx
+0DE6    89 5C 24 1C               mov       [esp+0x1c],ebx
+0DEA    DB 44 24 1C               fild      dword ptr [esp+0x1c]
+0DEE    D8 0D 10 00 00 00         fmul      dword ptr L$21
+0DF4    8B 44 24 0C               mov       eax,[esp+0xc]
+0DF8    DB 00                     fild      dword ptr [eax]
+0DFA    DE C1                     faddp     st(1),st
+0DFC    DC 0D 08 00 00 00         fmul      qword ptr L$17
+0E02    A1 4C 00 00 00            mov       eax,L$35
+0E07    DF 38                     fistp     qword ptr [eax]
+0E09    D9 05 10 00 00 00         fld       dword ptr L$21
+0E0F    A1 4C 00 00 00            mov       eax,L$35
+0E14    DC 0D 10 00 00 00         fmul      qword ptr L$18
+0E1A    83 C0 08                  add       eax,0x00000008
+0E1D    DF 38                     fistp     qword ptr [eax]
+0E1F    A1 4C 00 00 00            mov       eax,L$35
+0E24    8B 50 0C                  mov       edx,[eax+0xc]
+0E27    81 C2 00 01 00 00         add       edx,0x00000100
+0E2D    81 E2 FF 01 00 00         and       edx,0x000001ff
+0E33    83 C2 40                  add       edx,0x00000040
+0E36    8B 35 1C 00 00 00         mov       esi,L$24
+0E3C    89 50 10                  mov       [eax+0x10],edx
+0E3F    85 F6                     test      esi,esi
+0E41    0F 84 FC 02 00 00         je        L$10
+0E47    A1 28 00 00 00            mov       eax,L$27
+0E4C    8B 54 24 0C               mov       edx,[esp+0xc]
+0E50    40                        inc       eax
+0E51    8B 1D 5C 00 00 00         mov       ebx,L$38
+0E57    C1 E0 0C                  shl       eax,0x0000000c
+0E5A    8B 3A                     mov       edi,[edx]
+0E5C    89 C2                     mov       edx,eax
+0E5E    C1 FB 04                  sar       ebx,0x00000004
+0E61    29 FA                     sub       edx,edi
+0E63    0F AF DA                  imul      ebx,edx
+0E66    A1 60 00 00 00            mov       eax,L$39
+0E6B    C1 F8 04                  sar       eax,0x00000004
+0E6E    0F AF C1                  imul      eax,ecx
+0E71    01 C3                     add       ebx,eax
+0E73    8B 44 24 0C               mov       eax,[esp+0xc]
+0E77    C1 FB 08                  sar       ebx,0x00000008
+0E7A    8B 40 0C                  mov       eax,[eax+0xc]
+0E7D    01 D8                     add       eax,ebx
+0E7F    89 C6                     mov       esi,eax
+0E81    89 C3                     mov       ebx,eax
+0E83    C1 FE 03                  sar       esi,0x00000003
+0E86    C1 FB 02                  sar       ebx,0x00000002
+0E89    81 E6 FF 07 00 00         and       esi,0x000007ff
+0E8F    81 E3 00 10 00 00         and       ebx,0x00001000
+0E95    09 DE                     or        esi,ebx
+0E97    89 C3                     mov       ebx,eax
+0E99    D1 FB                     sar       ebx,0x00000001
+0E9B    81 E3 00 40 00 00         and       ebx,0x00004000
+0EA1    09 DE                     or        esi,ebx
+0EA3    89 C3                     mov       ebx,eax
+0EA5    81 E3 00 00 01 00         and       ebx,0x00010000
+0EAB    09 DE                     or        esi,ebx
+0EAD    8D 1C 00                  lea       ebx,[eax+eax]
+0EB0    81 E3 00 00 04 00         and       ebx,0x00040000
+0EB6    09 DE                     or        esi,ebx
+0EB8    8D 1C 85 00 00 00 00      lea       ebx,[eax*4]
+0EBF    81 E3 00 00 10 00         and       ebx,0x00100000
+0EC5    09 DE                     or        esi,ebx
+0EC7    8D 1C C5 00 00 00 00      lea       ebx,[eax*8]
+0ECE    81 E3 00 00 40 00         and       ebx,0x00400000
+0ED4    09 DE                     or        esi,ebx
+0ED6    89 C3                     mov       ebx,eax
+0ED8    C1 E3 04                  shl       ebx,0x00000004
+0EDB    81 E3 00 00 00 01         and       ebx,0x01000000
+0EE1    09 DE                     or        esi,ebx
+0EE3    89 C3                     mov       ebx,eax
+0EE5    C1 E3 05                  shl       ebx,0x00000005
+0EE8    81 E3 00 00 00 04         and       ebx,0x04000000
+0EEE    09 DE                     or        esi,ebx
+0EF0    89 C3                     mov       ebx,eax
+0EF2    C1 E3 06                  shl       ebx,0x00000006
+0EF5    C1 E0 07                  shl       eax,0x00000007
+0EF8    81 E3 00 00 00 10         and       ebx,0x10000000
+0EFE    25 00 00 00 40            and       eax,0x40000000
+0F03    09 F3                     or        ebx,esi
+0F05    09 D8                     or        eax,ebx
+0F07    8B 2D 30 00 00 00         mov       ebp,L$29
+0F0D    A3 58 00 00 00            mov       L$37,eax
+0F12    A1 5C 00 00 00            mov       eax,L$38
+0F17    0F AF C5                  imul      eax,ebp
+0F1A    03 05 60 00 00 00         add       eax,L$39
+0F20    89 C6                     mov       esi,eax
+0F22    89 C3                     mov       ebx,eax
+0F24    C1 FE 03                  sar       esi,0x00000003
+0F27    C1 FB 02                  sar       ebx,0x00000002
+0F2A    81 E6 FF 07 00 00         and       esi,0x000007ff
+0F30    81 E3 00 10 00 00         and       ebx,0x00001000
+0F36    09 DE                     or        esi,ebx
+0F38    89 C3                     mov       ebx,eax
+0F3A    D1 FB                     sar       ebx,0x00000001
+0F3C    81 E3 00 40 00 00         and       ebx,0x00004000
+0F42    09 DE                     or        esi,ebx
+0F44    89 C3                     mov       ebx,eax
+0F46    81 E3 00 00 01 00         and       ebx,0x00010000
+0F4C    09 DE                     or        esi,ebx
+0F4E    8D 1C 00                  lea       ebx,[eax+eax]
+0F51    81 E3 00 00 04 00         and       ebx,0x00040000
+0F57    09 DE                     or        esi,ebx
+0F59    8D 1C 85 00 00 00 00      lea       ebx,[eax*4]
+0F60    81 E3 00 00 10 00         and       ebx,0x00100000
+0F66    09 DE                     or        esi,ebx
+0F68    8D 1C C5 00 00 00 00      lea       ebx,[eax*8]
+0F6F    81 E3 00 00 40 00         and       ebx,0x00400000
+0F75    09 DE                     or        esi,ebx
+0F77    89 C3                     mov       ebx,eax
+0F79    C1 E3 04                  shl       ebx,0x00000004
+0F7C    81 E3 00 00 00 01         and       ebx,0x01000000
+0F82    09 DE                     or        esi,ebx
+0F84    89 C3                     mov       ebx,eax
+0F86    C1 E3 05                  shl       ebx,0x00000005
+0F89    81 E3 00 00 00 04         and       ebx,0x04000000
+0F8F    09 DE                     or        esi,ebx
+0F91    89 C3                     mov       ebx,eax
+0F93    C1 E3 06                  shl       ebx,0x00000006
+0F96    C1 E0 07                  shl       eax,0x00000007
+0F99    81 E3 00 00 00 10         and       ebx,0x10000000
+0F9F    25 00 00 00 40            and       eax,0x40000000
+0FA4    09 F3                     or        ebx,esi
+0FA6    09 D8                     or        eax,ebx
+0FA8    8B 1D 74 00 00 00         mov       ebx,L$43
+0FAE    C1 FB 04                  sar       ebx,0x00000004
+0FB1    0F AF DA                  imul      ebx,edx
+0FB4    0D 00 A8 AA AA            or        eax,0xaaaaa800
+0FB9    A3 68 00 00 00            mov       L$41,eax
+0FBE    A1 78 00 00 00            mov       eax,L$44
+0FC3    C1 F8 04                  sar       eax,0x00000004
+0FC6    0F AF C1                  imul      eax,ecx
+0FC9    01 C3                     add       ebx,eax
+0FCB    8B 44 24 0C               mov       eax,[esp+0xc]
+0FCF    C1 FB 08                  sar       ebx,0x00000008
+0FD2    8B 40 10                  mov       eax,[eax+0x10]
+0FD5    01 D8                     add       eax,ebx
+0FD7    89 C6                     mov       esi,eax
+0FD9    89 C3                     mov       ebx,eax
+0FDB    C1 FE 03                  sar       esi,0x00000003
+0FDE    D1 FB                     sar       ebx,0x00000001
+0FE0    81 E6 FF 07 00 00         and       esi,0x000007ff
+0FE6    81 E3 00 20 00 00         and       ebx,0x00002000
+0FEC    09 DE                     or        esi,ebx
+0FEE    89 C3                     mov       ebx,eax
+0FF0    81 E3 00 80 00 00         and       ebx,0x00008000
+0FF6    09 DE                     or        esi,ebx
+0FF8    8D 1C 00                  lea       ebx,[eax+eax]
+0FFB    81 E3 00 00 02 00         and       ebx,0x00020000
+1001    09 DE                     or        esi,ebx
+1003    8D 1C 85 00 00 00 00      lea       ebx,[eax*4]
+100A    81 E3 00 00 08 00         and       ebx,0x00080000
+1010    09 DE                     or        esi,ebx
+1012    8D 1C C5 00 00 00 00      lea       ebx,[eax*8]
+1019    81 E3 00 00 20 00         and       ebx,0x00200000
+101F    09 DE                     or        esi,ebx
+1021    89 C3                     mov       ebx,eax
+1023    C1 E3 04                  shl       ebx,0x00000004
+1026    81 E3 00 00 80 00         and       ebx,0x00800000
+102C    09 DE                     or        esi,ebx
+102E    89 C3                     mov       ebx,eax
+1030    C1 E3 05                  shl       ebx,0x00000005
+1033    81 E3 00 00 00 02         and       ebx,0x02000000
+1039    09 DE                     or        esi,ebx
+103B    89 C3                     mov       ebx,eax
+103D    C1 E3 06                  shl       ebx,0x00000006
+1040    81 E3 00 00 00 08         and       ebx,0x08000000
+1046    09 DE                     or        esi,ebx
+1048    89 C3                     mov       ebx,eax
+104A    C1 E3 07                  shl       ebx,0x00000007
+104D    C1 E0 08                  shl       eax,0x00000008
+1050    81 E3 00 00 00 20         and       ebx,0x20000000
+1056    25 00 00 00 80            and       eax,0x80000000
+105B    09 F3                     or        ebx,esi
+105D    09 D8                     or        eax,ebx
+105F    A3 70 00 00 00            mov       L$42,eax
+1064    A1 74 00 00 00            mov       eax,L$43
+1069    0F AF C5                  imul      eax,ebp
+106C    03 05 78 00 00 00         add       eax,L$44
+1072    89 C6                     mov       esi,eax
+1074    89 C3                     mov       ebx,eax
+1076    C1 FE 03                  sar       esi,0x00000003
+1079    D1 FB                     sar       ebx,0x00000001
+107B    81 E6 FF 07 00 00         and       esi,0x000007ff
+1081    81 E3 00 20 00 00         and       ebx,0x00002000
+1087    09 F3                     or        ebx,esi
+1089    89 C6                     mov       esi,eax
+108B    81 E6 00 80 00 00         and       esi,0x00008000
+1091    09 DE                     or        esi,ebx
+1093    8D 1C 00                  lea       ebx,[eax+eax]
+1096    81 E3 00 00 02 00         and       ebx,0x00020000
+109C    09 DE                     or        esi,ebx
+109E    8D 1C 85 00 00 00 00      lea       ebx,[eax*4]
+10A5    81 E3 00 00 08 00         and       ebx,0x00080000
+10AB    09 DE                     or        esi,ebx
+10AD    8D 1C C5 00 00 00 00      lea       ebx,[eax*8]
+10B4    81 E3 00 00 20 00         and       ebx,0x00200000
+10BA    09 DE                     or        esi,ebx
+10BC    89 C3                     mov       ebx,eax
+10BE    C1 E3 04                  shl       ebx,0x00000004
+10C1    81 E3 00 00 80 00         and       ebx,0x00800000
+10C7    09 DE                     or        esi,ebx
+10C9    89 C3                     mov       ebx,eax
+10CB    C1 E3 05                  shl       ebx,0x00000005
+10CE    81 E3 00 00 00 02         and       ebx,0x02000000
+10D4    09 DE                     or        esi,ebx
+10D6    89 C3                     mov       ebx,eax
+10D8    C1 E3 06                  shl       ebx,0x00000006
+10DB    81 E3 00 00 00 08         and       ebx,0x08000000
+10E1    09 F3                     or        ebx,esi
+10E3    89 C6                     mov       esi,eax
+10E5    C1 E6 07                  shl       esi,0x00000007
+10E8    C1 E0 08                  shl       eax,0x00000008
+10EB    81 E6 00 00 00 20         and       esi,0x20000000
+10F1    25 00 00 00 80            and       eax,0x80000000
+10F6    09 F3                     or        ebx,esi
+10F8    09 D8                     or        eax,ebx
+10FA    0D 00 58 55 55            or        eax,0x55555800
+10FF    A3 80 00 00 00            mov       L$46,eax
+1104    A1 8C 00 00 00            mov       eax,L$48
+1109    C1 F8 08                  sar       eax,0x00000008
+110C    0F AF D0                  imul      edx,eax
+110F    A1 90 00 00 00            mov       eax,L$49
+1114    C1 F8 08                  sar       eax,0x00000008
+1117    0F AF C8                  imul      ecx,eax
+111A    01 CA                     add       edx,ecx
+111C    8B 44 24 0C               mov       eax,[esp+0xc]
+1120    C1 FA 04                  sar       edx,0x00000004
+1123    8B 40 08                  mov       eax,[eax+0x8]
+1126    01 D0                     add       eax,edx
+1128    A3 88 00 00 00            mov       L$47,eax
+112D    A1 8C 00 00 00            mov       eax,L$48
+1132    0F AF C5                  imul      eax,ebp
+1135    8B 15 90 00 00 00         mov       edx,L$49
+113B    01 C2                     add       edx,eax
+113D    89 15 98 00 00 00         mov       L$51,edx
+1143                          L$10:
+1143    A1 4C 00 00 00            mov       eax,L$35
+1148    8B 54 24 04               mov       edx,[esp+0x4]
+114C    8B 48 04                  mov       ecx,[eax+0x4]
+114F    01 CA                     add       edx,ecx
+1151    89 50 04                  mov       [eax+0x4],edx
+1154    8B 44 24 0C               mov       eax,[esp+0xc]
+1158    8B 54 24 08               mov       edx,[esp+0x8]
+115C    8B 40 04                  mov       eax,[eax+0x4]
+115F    8B 52 04                  mov       edx,[edx+0x4]
+1162    C1 F8 0C                  sar       eax,0x0000000c
+1165    C1 FA 0C                  sar       edx,0x0000000c
+1168    29 D0                     sub       eax,edx
+116A    89 44 24 14               mov       [esp+0x14],eax
+116E    85 C0                     test      eax,eax
+1170    0F 8D 85 01 00 00         jge       L$15
+1176                          L$11:
+1176    8B 35 3C 00 00 00         mov       esi,L$32
+117C    A1 28 00 00 00            mov       eax,L$27
+1181    39 F0                     cmp       eax,esi
+1183    73 77                     jae       L$14
+1185    8B 2D 00 00 00 00         mov       ebp,_dbuf
+118B    8B 35 00 00 00 00         mov       esi,_zbuf
+1191    8B 15 88 00 00 00         mov       edx,L$47
+1197    89 C7                     mov       edi,eax
+1199    29 E8                     sub       eax,ebp
+119B    8B 0D 70 00 00 00         mov       ecx,L$42
+11A1    01 C0                     add       eax,eax
+11A3    8B 1D 58 00 00 00         mov       ebx,L$37
+11A9    01 C6                     add       esi,eax
+11AB    3B 3D 3C 00 00 00         cmp       edi,L$32
+11B1    73 49                     jae       L$14
+11B3                          L$12:
+11B3    81 E3 FF 57 55 55         and       ebx,0x555557ff
+11B9    81 E1 FF A7 AA AA         and       ecx,0xaaaaa7ff
+11BF    89 DD                     mov       ebp,ebx
+11C1    89 D0                     mov       eax,edx
+11C3    C1 E8 0C                  shr       eax,0x0000000c
+11C6    01 CD                     add       ebp,ecx
+11C8    C1 ED 0C                  shr       ebp,0x0000000c
+11CB    03 1D 64 00 00 00         add       ebx,L$40
+11D1    03 0D 7C 00 00 00         add       ecx,L$45
+11D7    03 2D 20 00 00 00         add       ebp,L$25
+11DD    66 3B 06                  cmp       ax,[esi]
+11E0    72 08                     jb        L$13
+11E2    66 89 06                  mov       [esi],ax
+11E5    8A 45 00                  mov       al,[ebp]
+11E8    88 07                     mov       [edi],al
+11EA                          L$13:
+11EA    03 15 94 00 00 00         add       edx,L$50
+11F0    47                        inc       edi
+11F1    83 C6 02                  add       esi,0x00000002
+11F4    3B 3D 3C 00 00 00         cmp       edi,L$32
+11FA    72 B7                     jb        L$12
+11FC                          L$14:
+11FC    BB 24 00 00 00            mov       ebx,offset L$26
+1201    A1 2C 00 00 00            mov       eax,L$28
+1206    11 03                     adc       [ebx],eax
+1208    19 C0                     sbb       eax,eax
+120A    8B 15 34 00 00 00         mov       edx,L$30
+1210    8B 0D 28 00 00 00         mov       ecx,L$27
+1216    8B 1D 58 00 00 00         mov       ebx,L$37
+121C    8B 3D 70 00 00 00         mov       edi,L$42
+1222    29 C2                     sub       edx,eax
+1224    A3 18 00 00 00            mov       L$23,eax
+1229    01 D1                     add       ecx,edx
+122B    8B 15 64 00 00 00         mov       edx,L$40
+1231    89 0D 28 00 00 00         mov       L$27,ecx
+1237    21 C2                     and       edx,eax
+1239    8B 0D 98 00 00 00         mov       ecx,L$51
+123F    01 D3                     add       ebx,edx
+1241    8B 15 7C 00 00 00         mov       edx,L$45
+1247    89 1D 58 00 00 00         mov       L$37,ebx
+124D    89 DE                     mov       esi,ebx
+124F    8B 1D 88 00 00 00         mov       ebx,L$47
+1255    81 E6 FF 57 55 55         and       esi,0x555557ff
+125B    21 C2                     and       edx,eax
+125D    89 35 58 00 00 00         mov       L$37,esi
+1263    01 D7                     add       edi,edx
+1265    8B 15 94 00 00 00         mov       edx,L$50
+126B    89 3D 70 00 00 00         mov       L$42,edi
+1271    89 FD                     mov       ebp,edi
+1273    21 D0                     and       eax,edx
+1275    81 E5 FF A7 AA AA         and       ebp,0xaaaaa7ff
+127B    01 C8                     add       eax,ecx
+127D    89 2D 70 00 00 00         mov       L$42,ebp
+1283    01 C3                     add       ebx,eax
+1285    A1 68 00 00 00            mov       eax,L$41
+128A    89 1D 88 00 00 00         mov       L$47,ebx
+1290    BB 38 00 00 00            mov       ebx,offset L$31
+1295    01 C6                     add       esi,eax
+1297    A1 80 00 00 00            mov       eax,L$46
+129C    89 35 58 00 00 00         mov       L$37,esi
+12A2    01 C5                     add       ebp,eax
+12A4    89 F7                     mov       edi,esi
+12A6    89 E8                     mov       eax,ebp
+12A8    89 2D 70 00 00 00         mov       L$42,ebp
+12AE    25 FF A7 AA AA            and       eax,0xaaaaa7ff
+12B3    81 E7 FF 57 55 55         and       edi,0x555557ff
+12B9    A3 70 00 00 00            mov       L$42,eax
+12BE    A1 40 00 00 00            mov       eax,L$33
+12C3    89 3D 58 00 00 00         mov       L$37,edi
+12C9    11 03                     adc       [ebx],eax
+12CB    19 C0                     sbb       eax,eax
+12CD    8B 15 48 00 00 00         mov       edx,L$34
+12D3    8B 4C 24 14               mov       ecx,[esp+0x14]
+12D7    29 C2                     sub       edx,eax
+12D9    A3 18 00 00 00            mov       L$23,eax
+12DE    89 D0                     mov       eax,edx
+12E0    8B 15 3C 00 00 00         mov       edx,L$32
+12E6    41                        inc       ecx
+12E7    01 C2                     add       edx,eax
+12E9    89 4C 24 14               mov       [esp+0x14],ecx
+12ED    89 15 3C 00 00 00         mov       L$32,edx
+12F3    85 C9                     test      ecx,ecx
+12F5    0F 8C 7B FE FF FF         jl        L$11
+12FB                          L$15:
+12FB    83 C4 20                  add       esp,0x00000020
+12FE    5D                        pop       ebp
+12FF    5F                        pop       edi
+1300    5E                        pop       esi
+1301    5A                        pop       edx
+1302    59                        pop       ecx
+1303    5B                        pop       ebx
+1304    C3                        ret       
+
+Routine Size: 4569 bytes,    Routine Base: _TEXT + 012C
+
+No disassembly errors
+
+Segment: CONST DWORD USE32 00000018 bytes
+0000                          L$16:
+0000    00 00 00 00 00 00 B0 40                         .......@
+0008                          L$17:
+0008    00 00 00 00 00 00 30 41                         ......0A
+0010                          L$18:
+0010    00 00 00 00 00 00 F0 41                         .......A
+
+
+
+Segment: _BSS DWORD USE32 0000009C bytes
+0000                          _dbuf:
+0004                          _zbuf:
+0008                          L$19:
+000C                          L$20:
+0010                          L$21:
+0014                          L$22:
+0018                          L$23:
+001C                          L$24:
+0020                          L$25:
+0024                          L$26:
+0028                          L$27:
+002C                          L$28:
+0030                          L$29:
+0034                          L$30:
+0038                          L$31:
+003C                          L$32:
+0040                          L$33:
+0048                          L$34:
+004C                          L$35:
+0050                          L$36:
+0058                          L$37:
+005C                          L$38:
+0060                          L$39:
+0064                          L$40:
+0068                          L$41:
+0070                          L$42:
+0074                          L$43:
+0078                          L$44:
+007C                          L$45:
+0080                          L$46:
+0088                          L$47:
+008C                          L$48:
+0090                          L$49:
+0094                          L$50:
+0098                          L$51:
+
+BSS Size: 156 bytes
+

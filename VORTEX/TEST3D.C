@@ -1,0 +1,305 @@
+
+typedef unsigned short ushort;
+
+#include <stdlib.h>
+#include "tinymath.h"
+//#include "tinyheap.h"
+//#include "tinyfile.h"
+//#include "vid.h"
+#include "enkine.h"
+#include "opu2.c"
+#include "tunneli.c"
+#include "mxmplay2.h"
+//#include "videofx.c"
+#include "dots.c"
+
+//#define pi 3.14158
+ushort *videomem;
+
+extern char mjuzic[100000];
+Xmpgds *mdata=(Xmpgds*)mjuzic;
+
+float musatimer() {
+  return ((mdata->curord*64+mdata->currow)+(mdata->curtick
+    +(xmpGetTimer()-mdata->maxtimerrate)/(float)(mdata->stimerlen))/mdata->curtempo);
+}
+
+
+void mode(int);
+#pragma aux mode="int 0x10" parm[eax] modify[edx];
+void move32(void *zourke, void *dezt, int kount);
+#pragma aux move32= "cld" "rep movsd" parm[esi][edi][ecx];
+void fill32(void *dezt, int kount, int num);
+#pragma aux fill32= "cld" "rep stosd" parm[edi][ecx][eax];
+void ulos(int port, char data);
+#pragma aux ulos= "out dx, al" parm[edx][al];
+char sisaan(int port);
+#pragma aux sisaan= "in al, dx" parm[edx][al] value[al];
+
+
+long buf32[16968];
+char dbuf[64000], dbuf2[64000], buf160[16000];
+int intbuf160[16000];
+ushort zbuf[64000];
+ushort envi[65536];
+char mappi[65536], mappi2[65536];
+int pienix[41*26], pieniz[41*26], varjot[41*26], varjot2[41*26];
+char isox[64000], isoz[64000], valo[64000], valo2[64000];
+extern char tmap[];
+ushort paletti1[16384];
+char plasma[64000];
+short hfield1[65536], hfield2[65536], sint1[256], sint2[256], sint3[256];
+char sprite[256*256];
+ushort spritepal[64*256];
+float sintbl[4096], costbl[4096];
+int rtbl[2048];
+
+
+
+//char *videomem=(char*)0xa0000;
+//float fabs(float a);
+//#pragma aux fabs= "fabs" parm [8087] value [8087];
+int seed=3242342, seed2=8754567, seed3=1231231;
+int rand() {
+  seed=seed*(765342345+seed3--)+78761567+seed2++;
+  return seed>>8&0x7fff;
+}
+//int hm2(int k) { return k<63?k:63; }
+//int hmx(int k) { return k<255?(k>0?k:0):255; }
+float f_sqr(float joo) { return joo*joo; }
+
+
+int temppi[65536];
+void first(char *m) {
+  int x;
+  int *y;
+  for (y=temppi; y<temppi+65536; y+=1024) for (x=0; x<256; x+=8) {
+    y[x]=(*m&0xf)<<16; y[x+4]=(*m++>>4&0xf)<<16;
+  }
+}
+void last(char *m) {
+  int a;
+  int *i;
+  for (i=temppi; i<temppi+65536; i++) {
+    a=*i;
+    if (a<0) a=0;
+    if (a>1048575) a=1048575;
+    *m++=(char)(a>>12);
+  }
+}
+void ip(int a, int d) {
+  int yd=d&0xff00, yd3=yd*3;
+  int xd=d&0xff, xd3=xd*3;
+  int x, y;
+  for (y=yd; y<65536; y+=a&0xff00)
+    for (x=xd; x<256; x+=a&0xff)
+      temppi[y+x]=(temppi[(y-yd &0xff00)+(x-xd &0xff)]
+                  +temppi[(y+yd &0xff00)+(x+xd &0xff)])*19
+                 -(temppi[(y-yd3&0xff00)+(x-xd3&0xff)]
+                  +temppi[(y+yd3&0xff00)+(x+xd3&0xff)])*3+16>>5;
+/*  for (y=0; y<65536; y+=a&0xff00)
+    for (x=0; x<256; x+=a&0xff)
+      temppi[y+x]=temppi[y+x]*2
+                 +temppi[(y-yd&0xff00)+(x-xd&0xff)]
+                 +temppi[(y+yd&0xff00)+(x+xd&0xff)]+2>>2;*/
+  for (y=0; y<65536; y+=a&0xff00)
+    for (x=0; x<256; x+=a&0xff)
+      temppi[y+x]=temppi[y+x]*32
+                +(temppi[(y-yd &0xff00)+(x-xd &0xff)]
+                 +temppi[(y+yd &0xff00)+(x+xd &0xff)])*19
+                -(temppi[(y-yd3&0xff00)+(x-xd3&0xff)]
+                 +temppi[(y+yd3&0xff00)+(x+xd3&0xff)])*3+32>>6;
+}
+void domap(char *src, char *dest, int rez0) {
+  first(src);
+  if (rez0>=2) { ip(0x404, 0x002); ip(0x402, 0x200); }
+  if (rez0>=1) { ip(0x202, 0x001); ip(0x201, 0x100); }
+  last(dest);
+}
+
+
+void __interrupt __far (*get_intr(int no))();
+#pragma aux get_intr="mov eax,0x204""int 0x31" parm [ebx] value [cx edx] modify [eax ebx ecx edx esi edi];
+void set_intr(int no, void __interrupt __far (*f)());
+#pragma aux set_intr="mov eax,0x205""int 0x31" parm [ebx][cx edx] modify [eax ebx ecx edx esi edi];
+
+static volatile char keys[144], kcnt[144];
+void __interrupt __far (*oldk)();
+void __interrupt __far __loadds newk() {
+  int a;
+  a=sisaan(0x60);
+  if (a<0x80) { keys[a]=1; kcnt[a]++; } else keys[a-0x80]=0;
+
+  a=keys[128]; keys[128]=keys[29]&&keys[56]&&keys[83]; kcnt[128]+=keys[128]&&!a;
+  a=keys[129]; keys[129]=keys[29]&&keys[69]; kcnt[129]+=keys[129]&&!a;
+  ulos(0x20, 0x20);
+
+  if ((kcnt[128]&1)&&!keys[128]) {
+    set_intr(0x9, oldk);
+    _asm {
+      mov eax,3h
+      int 10h
+    };
+    dosputs("Now it's safe to turn off your computer.\r\n$");
+    exit(1);
+  }
+}
+
+
+
+
+int main()
+{
+  //static object obu;
+  int x, y, z, br, br2;
+  int c1, c2;
+  int port;
+  float t, a;
+  float xp, yp, zp, xt, yt, zt, xs, ys, zs;
+  int r, g, b;
+  unsigned short newcw=0x003f;
+
+  _asm {
+    fldcw newcw
+  };
+
+  dosputs("Where is your GUS [2x0]? (enter=quiet)\r\n$");
+  for (port=0x1234; port==0x1234; ) {
+    switch (tiny_inkey()) {
+      case '0': port=0x200; break;
+      case '1': port=0x210; break;
+      case '2': port=0x220; break;
+      case '3': port=0x230; break;
+      case '4': port=0x240; break;
+      case '5': port=0x250; break;
+      case '6': port=0x260; break;
+      case '7': port=0x270; break;
+      case 13: port=0; break;
+    }
+  }
+  xmpInit(mjuzic+16384, port|0x80000000, mjuzic, 65536);
+
+  dosputs("tahtoisin olla mfx memberi...\r\n$");
+
+  //tee_opu(&obu);
+  //laskevektorinormaalit(&obu);
+//  tee_opu(&obu2);
+//  tee_opu(&obu3);
+  domap(tmap, mappi, 2);
+  precalculatemappi();
+  //precalculoitcpaska();
+  //calculate_distance_table_for_flares();
+
+  //precalculoitunneli(0.5, 256);
+  precalcigalaxi();
+  loadgalaxi();
+
+  for (x=0; x<4096; x++) sintbl[x]=fsin(x*3.14159265358979323846264/2048.0);
+  for (x=0; x<4096; x++) costbl[x]=fcos(x*3.14159265358979323846264/2048.0);
+
+  for (x=0; x<1024; x++) rtbl[x]=0;
+  for (x=1024; x<1280; x++) rtbl[x]=x-1024;
+  for (x=1280; x<2048; x++) rtbl[x]=255;
+
+
+
+  //if (!v_open(3)) {
+    //dosputs("install univbe kiitos\r\n$");
+    //exit(1);
+  //}
+
+  mode(0x13);
+
+  for (x=0; x<256; x++) {
+    ulos(0x3c8, rtbl[x]>>2);
+    ulos(0x3c8, rtbl[x+2]>>2);
+    ulos(0x3c8, rtbl[x+1]>>2);
+
+  }
+
+  xmpPlay(0);
+
+  oldk=get_intr(0x9);
+  set_intr(0x9, newk);
+
+  while (!kcnt[1]) {
+
+//    for (y=0; y<200; y++) for (x=0; x<256; x++) videomem[y*320+x]=envi[y*256+x];
+
+
+//////////////////////////////////////////// galaxi
+
+
+    if (mdata->curord<14) {
+      br=65536;
+//      if (mdata->curord==0) br=mdata->currow<<10;
+//      if (mdata->curord==10) br=63-mdata->currow<<10;
+      t=musatimer()*0.25;
+
+      fill32(intbuf160, 16000, 0);
+      fill32(dbuf2, 16000, 0);
+/*      yp=-(640-musatimer())*0.01*4;
+      xp=fsin(t*0.0316)*(2-t*0.001)*(yp+1);
+      zp=fcos(t*0.0537)*(2-t*0.001)*(yp+1); */
+      xp=fsin(t*0.12345)*(fsin(t*0.0312)+3)*2;
+      yp=fsin(t*0.23232)-3;
+      zp=fcos(t*0.12345)*(fcos(t*0.0461)+3)*2;
+
+
+      teegalaxi(intbuf160, 0, xp, yp, zp);
+      blur(buf160, intbuf160);
+      suurenna(buf160, dbuf, 160, 100);
+      teevalo(dbuf, t*10.0, 16384/(xp*xp+yp*yp+zp*zp)*4);
+//      for (x=0; x<64000; x++) plasma[x]=hm2(valo[x]);
+//      teeharmaastavari(videomem, dbuf2, plasma, paletti1, 65536);
+      for (x=0; x<64000; x++) {
+/*        r=(videomem[x]>>11)+(dbuf[x]>>3); if (r>31) r=31;
+        g=(videomem[x]>>5&63)+(dbuf[x]>>2); if (g>63) g=63;
+        b=(videomem[x]&31)+(dbuf[x]>>3); if (b>31) b=31;
+          paletti[(*src*br>>16)+(*plasma<<8)]; */
+        y=dbuf[x]*br>>16;
+        z=0;
+//        z=paletti1[(dbuf2[x]*br>>16)+(plasma[x]<<8)];
+        r=(z>>11)  +(y>>3); if (r>31) r=31;
+        g=(z>>5&63)+(y>>2); if (g>63) g=63;
+        b=(z&31)   +(y>>3); if (b>31) b=31;
+        videomem[x]=(r<<11)+(g<<5)+(b);
+
+      }
+      v_copy();
+    }
+
+    if (mdata->curord>14) {
+      br=64;
+      if (mdata->curord==31) br=mdata->currow;
+      if (mdata->curord==36) br=63-mdata->currow*2;
+      if (br<0) br=0;
+      t=musatimer()*0.25;
+
+      fill32(buf160, 4000, 0);
+      xp=fsin(t*0.210);
+      yp=fcos(t*0.144);
+      zp=fsin(t*0.373);
+      teespiraali(buf160, t/666.0, xp, yp, zp);
+//      blur(buf160);
+      suurenna(buf160, dbuf, 160, 100);
+      teevaloefekti(dbuf, xp*0.5, yp*0.5, zp*0.5);
+      teeharmaastavari(videomem, dbuf, plasma, paletti1, br*1024);
+      v_copy();
+    }
+
+
+
+
+    while (kcnt[129]&1) ;
+    if (kcnt[0x4e]) { mdata->jumptoord=mdata->curord+1; kcnt[0x4e]=0; }
+
+  }
+
+  set_intr(0x9, oldk);
+
+  mode(0x3);
+  xmpStop();
+
+  return 0;
+}

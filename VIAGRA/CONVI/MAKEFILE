@@ -1,0 +1,52 @@
+ccopts = -onasilmrh -s -fpi87 -fp5 -5r -e5 -zp=1 -w=9
+asmopts = -UT310 -p -ml -m9 -zi
+
+makeobjs = convi.obj
+objs = kiina1.obj kiina2.obj kiina3.obj kiina4.obj kiina5.obj kiina6.obj
+objs+= i3logo1.obj i3logo2.obj
+objs+= $(makeobjs)
+
+rmk = makefile
+
+
+
+
+.silent
+.extensions: .s3m .tga .raw
+
+all : convi.exe .symbolic
+
+$(makeobjs) :: $(rmk)
+  del $^*.obj
+
+.raw.obj :
+  binobj32 $^*.raw $^*.obj $^*
+
+.cpp.obj :
+  wpp386 $^*.cpp $(ccopts)
+
+.c.obj :
+  wcc386 $^*.c $(ccopts)
+
+.asm.obj :
+  tasm $^*.asm $(asmopts)
+
+
+convi.exe : $(objs) $(rmk)
+  %write temp786x.666 name $^*
+  %write temp786x.666 file { $(objs) }
+  %write temp786x.666 option caseexact
+  %write temp786x.666 system pmodew
+  wlink @temp786x.666
+  del temp786x.666
+#  pmwlite $^*.exe
+#  pmwsetup /V32 $^*.exe
+
+
+clean : .symbolic
+  del $(makeobjs) *.exe *.bak *.err *.zip
+run : convi.exe .symbolic
+  convi.exe
+
+
+

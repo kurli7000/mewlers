@@ -1,0 +1,64 @@
+ccopts = -onasilmrh -s -fpi87 -fp5 -5r -e5 -zp=1 -w=9
+asmopts = -UT310 -p -ml -m9 -zi
+
+makeobjs = test3d.obj vid.obj mxmplay2.obj
+
+objs = clif.obj musa.obj
+objs+= $(makeobjs)
+
+rmk = *.h makefile dots.c
+
+
+
+
+.silent
+.extensions: .xm .tga .raw
+
+all : impotent.exe .symbolic
+
+$(makeobjs) :: $(rmk)
+  del $^*.obj
+
+.cpp.obj :
+  wpp386 $^*.cpp $(ccopts)
+
+.c.obj :
+  wcc386 $^*.c $(ccopts)
+
+.asm.obj :
+  tasm $^*.asm $(asmopts)
+
+
+impotent.exe : $(objs) $(rmk)
+  %write temp786x.666 name $^*
+  %write temp786x.666 file { $(objs) }
+  %write temp786x.666 option caseexact
+#  %write temp786x.666 option nodefaultlibs
+  %write temp786x.666 system pmodew
+  wlink @temp786x.666
+  del temp786x.666
+  pmwlite $^*.exe
+#  pmwsetup /V32 $^*.exe
+
+
+clean : .symbolic
+  del $(makeobjs) *.exe *.bak *.err *.zip
+run : impotent.exe .symbolic
+  impotent.exe
+
+
+
+
+#impotent.exe : impotent.obj vid.obj
+#  wlink @impotent.wlk
+#  pmwlite impotent.exe
+#impotent.obj : impotent.c
+#  wcc386.exe -onasilmrh -zp1 -s -fpi87 -fp5 -5r -e5 -w3 impotent
+#  wcc386.exe -oneatxh -zp1 -s -fpi87 -fp5 -5r -e5 -w3 impotent
+#vid.obj : vid.c
+#  wcc386.exe -onasilmrh -zp1 -s -fpi87 -fp5 -5r -e5 -w3 vid
+#  wcc386.exe -oneatxh -zp1 -s -fpi87 -fp5 -5r -e5 -w3 vid
+#run : impotent.exe .symbolic
+#  impotent.exe
+
+

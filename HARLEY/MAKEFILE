@@ -1,0 +1,61 @@
+ccopts = -onailmrh -s -fpi87 -d1 -fp3 -6r -e5 -zp=1 -w9 -we -wcd=201 -wcd=202
+asmopts = -UT310 -p -ml -m9 -zi -dDEBUG
+
+makeobjs = test4d.obj video.obj mxmplay2.obj
+objs = musa.obj phontti.obj tinystrt.obj
+objs+= $(makeobjs)
+
+rmk = *.h makefile
+
+
+
+
+#.silent
+.extensions:
+.extensions: .lst .obj .c .asm .cpp .xm .tga .raw
+
+all : test4d.exe .symbolic
+
+.cpp.obj : .autodepend
+  @echo $^*.cpp
+  @wpp386 -zq $(ccopts) $^*.cpp
+
+.c.obj : .autodepend
+  @echo $^*.c
+  @wcc386 $(ccopts) $^*.c
+
+.asm.obj :
+  @echo $^*.asm
+  @tasm $(asmopts) $^*.asm
+
+.xm.obj :
+  xm2mxm.exe $^*.xm temp786x.666 -p5
+  copy /b shit+temp786x.666 temp786x.667
+  binobj32 temp786x.667 $^*.obj mjuzic
+  del temp786x.666 temp786x.667
+
+.obj.lst :
+  wdis -fi -l -s $^*
+
+
+test4d.exe : $(objs) $(rmk)
+  %write temp786x.666 name $^*
+  %write temp786x.666 library lib2tfin
+  %write temp786x.666 file { $(objs) }
+  %write temp786x.666 option caseexact
+  %write temp786x.666 option nodefaultlibs
+  %write temp786x.666 system pmodew
+  wlink @temp786x.666
+  del temp786x.666
+  pmwlite $^*.exe
+  pmwsetup /V32 $^*.exe
+
+
+clean : .symbolic
+  del $(makeobjs)
+  del *.exe *.bak *.err *.zip *.lst
+
+run : test4d.exe .symbolic
+  @echo run
+  @test4d.exe
+

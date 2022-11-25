@@ -1,0 +1,11 @@
+impotent.c(88): Warning! W202: Symbol 'j' has been defined, but not referenced
+impotent.c(142): Warning! W202: Symbol 'v' has been defined, but not referenced
+impotent.c(142): Warning! W202: Symbol 'u' has been defined, but not referenced
+impotent.c(141): Warning! W202: Symbol 'i' has been defined, but not referenced
+impotent.c(142): Warning! W202: Symbol 'f' has been defined, but not referenced
+impotent.c(236): Error! E1097: Missing ? or misplaced :
+impotent.c(237): Error! E1063: Missing operand
+impotent.c(238): Error! E1063: Missing operand
+impotent.c(238): Error! E1009: Expecting ')' but found ';'
+impotent.c(238): Error! E1165: Unexpected ')'. Probable cause: missing '('
+impotent.c(240): Error! E1147: Too many errors: compilation aborted

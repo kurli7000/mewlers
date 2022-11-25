@@ -1,0 +1,80 @@
+ccopts = -onailmrh -s -fpi87 -d1 -fp3 -6r -e5 -zp=1 -w9 -we -wcd=201 -wcd=202 -dDEBUG
+#ccopts = -od -s -fpi87 -d1 -fp3 -6r -e5 -zp=1 -w9 -we -wcd=201 -wcd=202 -dDEBUG
+asmopts = -UT310 -p -ml -m9 -zi -dDEBUG
+
+makeobjs1 += mapconv.obj video.obj
+makeobjs = $(makeobjs1) $(makeobjs2)
+
+
+objs+= $(makeobjs)
+
+rmk = *.h makefile
+
+
+
+
+#.silent
+.extensions:
+.extensions: .lst .obj .c .asm .cpp .xm .tga .raw
+
+all : mapconv.exe .symbolic
+
+
+#$(makeobjs) :: $(rmk)
+#  del $^*.obj
+
+.cpp.obj : .autodepend
+  @echo $^*.cpp
+  @wpp386 -zq $(ccopts) $^*.cpp
+
+.c.obj : .autodepend
+  @echo $^*.c
+  @wcc386 $(ccopts) $^*.c
+#|grep size
+
+#tri.obj : tri.c
+#  @echo $^*.c
+#  @wcc386 -onatilmrh $(ccopts) $^*.c
+
+.asm.obj :
+  @echo $^*.asm
+  @tasm $(asmopts) $^*.asm
+
+.xm.obj :
+  xm2mxm.exe $^*.xm temp786x.666 -p5
+  copy /b shit+temp786x.666 temp786x.667
+  binobj32 temp786x.667 $^*.obj mjuzic
+  del temp786x.666 temp786x.667
+
+.obj.lst :
+  wdis -fi -l -s $^*
+
+
+mapconv.exe : $(objs) $(rmk)
+  @echo $^*.exe
+  @%write temp786x.666 name $^*
+  @%write temp786x.666 library lib2cdbg
+  @%write temp786x.666 file { $(objs) }
+  @%write temp786x.666 option caseexact
+  @%write temp786x.666 option stack=32k
+#  @%write temp786x.666 option nodefaultlibs
+  @%write temp786x.666 system dos4g
+  @wlink @temp786x.666
+  @del temp786x.666 >nul
+#  @pmwlite $^*.exe
+#  @pmwsetup /V32 $^*.exe >nul
+
+
+clean : .symbolic
+  del $(makeobjs1)
+  del $(makeobjs2)
+  del *.exe *.bak *.err *.zip *.lst
+run : mapconv.exe .symbolic
+  @echo run
+  @mapconv.exe taivas.tga taivas.mfb
+
+
+
+
+
+

@@ -1,0 +1,7 @@
+vid.c(56): Warning! W102: Type mismatch
+vid.c(46): Warning! W202: Symbol 'x' has been defined, but not referenced
+vid.c(51): Warning! W202: Symbol 'des' has been defined, but not referenced
+vid.c(52): Warning! W202: Symbol 'sou' has been defined, but not referenced
+vid.c(165): Warning! W102: Type mismatch
+vid.c(56): Warning! W301: No prototype found for 'malloc'
+vid.c(55): Warning! W301: No prototype found for 'free'

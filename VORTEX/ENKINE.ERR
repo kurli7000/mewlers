@@ -1,0 +1,11 @@
+enkine.c(198): Warning! W202: Symbol 'intz' has been defined, but not referenced
+enkine.c(416): Warning! W202: Symbol 'f' has been defined, but not referenced
+enkine.c(462): Warning! W202: Symbol 'nz' has been defined, but not referenced
+enkine.c(462): Warning! W202: Symbol 'ny' has been defined, but not referenced
+enkine.c(462): Warning! W202: Symbol 'nx' has been defined, but not referenced
+enkine.c(465): Warning! W202: Symbol 'vp' has been defined, but not referenced
+enkine.c(463): Warning! W202: Symbol 'w3' has been defined, but not referenced
+enkine.c(463): Warning! W202: Symbol 'w2' has been defined, but not referenced
+enkine.c(461): Warning! W202: Symbol 'v3' has been defined, but not referenced
+enkine.c(461): Warning! W202: Symbol 'v2' has been defined, but not referenced
+enkine.c(461): Warning! W202: Symbol 'v1' has been defined, but not referenced
